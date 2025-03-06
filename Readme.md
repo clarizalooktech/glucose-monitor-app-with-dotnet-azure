@@ -99,15 +99,26 @@ This project is a Glucose Monitor App with a frontend built using React and a ba
 │   │
 │   ├── ui/                          # React Frontend
 │       ├── src/                     # React source files
-│       │   ├── components/          # Reusable React components
-│       │   ├── pages/               # Page-level components (Home, Dashboard)
-│       │   ├── services/            # API Calls (Axios, Fetch)
-│       │   ├── App.js               # Main React component
-│       │   ├── index.js             # Entry point
-│       │   └── styles/              # CSS/Styled Components
-│       ├── public/                  # Static assets
-│       ├── package.json             # Dependencies & scripts
-│       ├── .env                     # Environment variables
+│       │   ├── App.css
+│       │   ├── App.js
+│       │   ├── App.test.js
+│       │   ├── index.css
+│       │   ├── index.css
+│       │   ├── logo.svg
+│       │   ├── reportWebVitals.js
+│       │   ├── index.css
+│       │   ├── setupTests.js
+│       ├── public
+│       │   ├── favicon.ico
+│       │   ├── index.html
+│       │   ├── logo192.png
+│       │   ├── logo512.png
+│       │   ├── manifest.json
+│       │   ├── robots.txt
+│       ├── .eslintrc.js
+│       ├── .gitignore
+│       ├── package-lock.json
+│       ├── package.json
 │       ├── Dockerfile               # Frontend Dockerfile
 │       └── README.md                # Frontend documentation
 │
@@ -138,3 +149,6 @@ This project is a Glucose Monitor App with a frontend built using React and a ba
 └── .gitignore                       # Git Ignore file
 
 ```
+## Screenshot
+
+![Glucose Monitor UI](assets/screenshot.png)
