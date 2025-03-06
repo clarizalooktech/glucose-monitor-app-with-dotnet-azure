@@ -32,21 +32,56 @@ jobs:
         npm run build
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '7.0.x'
 
     - name: Restore backend dependencies
       run: |
         cd src/api
         dotnet restore
 
-    # - name: Build backend
-    #   run: |
-    #     cd src/api
-    #     dotnet build --configuration Release
+    - name: Build backend
+      run: |
+        cd src/api
+        dotnet build --configuration Release
 
-    # - name: Run tests
+    - name: Run tests
+      run: |
+        cd src/api
+        dotnet test --configuration Release
+
+    # - name: Login to Azure Container Registry
+    #   uses: azure/login@v1
+    #   with:
+    #     creds: ${{ secrets.AZURE_CREDENTIALS }} # GitHub Secrets
+
+    # - name: Build and push API Docker image
     #   run: |
-    #     cd src/api
-    #     dotnet test --configuration Release
+    #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
+    #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}
+
+    # - name: Build and push UI Docker image
+    #   run: |
+    #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }} -f src/ui/Dockerfile .
+    #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }}
+
+  # deploy:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy API to Azure App Service
+  #       uses: azure/webapps-deploy@v2
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #         app-name: 'YourAppName'
+  #         images: '${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}'
+  #     - name: Deploy UI to Azure Static Web App
+  #       uses: azure/static-web-apps-deploy@v1
+  #       with:
+  #         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+  #         repo_token: ${{ secrets.GITHUB_TOKEN }}
+  #         action: "upload"
+  #         app_location: "/src/ui/build"
+  #         api_location: ""
+  #         output_location: ""
