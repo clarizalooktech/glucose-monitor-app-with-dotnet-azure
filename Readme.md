@@ -87,27 +87,42 @@ This project is a Glucose Monitor App with a frontend built using React and a ba
 │
 ├── src/
 │   ├── api/                         # .NET Backend API
+│   │   ├── bin/                     # Build output (ignored in Git)
+│   │   ├── obj/                     # Build metadata (ignored in Git)
 │   │   ├── Controllers/             # API Controllers (GlucoseController.cs)
 │   │   ├── Models/                  # Data Models (GlucoseReading.cs)
 │   │   ├── Data/                    # Database Context (GlucoseDbContext.cs)
-│   │   ├── Services/                # Business Logic
+│   │   ├── Properties/
+│   │   │   ├── launchSettings.json
 │   │   ├── appsettings.json         # App configuration
 │   │   ├── Program.cs               # Entry point
-│   │   ├── GlucoseMonitor.csproj    # Project file
+│   │   ├── api.csproj               # Project file
 │   │   ├── Dockerfile               # API Dockerfile
-│   │   └── README.md                # API documentation
+│   │   ├── README.md                # API documentation
+│   │   ├── Startup.cs
 │   │
 │   ├── ui/                          # React Frontend
 │       ├── src/                     # React source files
-│       │   ├── components/          # Reusable React components
-│       │   ├── pages/               # Page-level components (Home, Dashboard)
-│       │   ├── services/            # API Calls (Axios, Fetch)
-│       │   ├── App.js               # Main React component
-│       │   ├── index.js             # Entry point
-│       │   └── styles/              # CSS/Styled Components
-│       ├── public/                  # Static assets
-│       ├── package.json             # Dependencies & scripts
-│       ├── .env                     # Environment variables
+│       │   ├── App.css
+│       │   ├── App.js
+│       │   ├── App.test.js
+│       │   ├── index.css
+│       │   ├── index.css
+│       │   ├── logo.svg
+│       │   ├── reportWebVitals.js
+│       │   ├── index.css
+│       │   ├── setupTests.js
+│       ├── public
+│       │   ├── favicon.ico
+│       │   ├── index.html
+│       │   ├── logo192.png
+│       │   ├── logo512.png
+│       │   ├── manifest.json
+│       │   ├── robots.txt
+│       ├── .eslintrc.js
+│       ├── .gitignore
+│       ├── package-lock.json
+│       ├── package.json
 │       ├── Dockerfile               # Frontend Dockerfile
 │       └── README.md                # Frontend documentation
 │
@@ -138,3 +153,12 @@ This project is a Glucose Monitor App with a frontend built using React and a ba
 └── .gitignore                       # Git Ignore file
 
 ```
+## Screenshots
+1. Front-end
+![Glucose Monitor UI](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/front-end.png)
+
+2. Back-End
+
+3. Cicd
+
+4. Azure Deployment
