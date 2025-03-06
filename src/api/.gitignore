@@ -1,4 +1,26 @@
 bin/
 obj/
+*.dll
+*.exe
+*.pdb
+
+# User-specific files
 .vscode/
+*.user
+*.suo
+*.rsuser
+
+# Logs and temp files
+logs/
 *.log
+*.cache
+
+# Rider / JetBrains IDE files
+.idea/
+
+# ASP.NET user secrets
+secrets.json
+
+# Configuration
+appsettings.Development.json
+appsettings.Local.json

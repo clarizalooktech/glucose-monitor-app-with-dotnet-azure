@@ -1,26 +1,34 @@
-using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
-using GlucoseMonitor.Models;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GlucoseMonitor.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
+    [EnableCors("AllowReactApp")] // Allow React app
     public class GlucoseController : ControllerBase
     {
-        private static List<GlucoseReading> readings = new List<GlucoseReading>();
+        private static List<GlucoseReading> _readings = new();
 
         [HttpGet]
-        public ActionResult<IEnumerable<GlucoseReading>> GetReadings()
+        public IActionResult GetGlucoseReadings()
         {
-            return Ok(readings);
+            return Ok(_readings);
         }
 
         [HttpPost]
-        public ActionResult AddReading(GlucoseReading reading)
+        public IActionResult AddGlucoseReading([FromBody] GlucoseReading reading)
         {
-            readings.Add(reading);
+            _readings.Add(reading);
             return Ok();
         }
+    }
+
+    public class GlucoseReading
+    {
+        public int Value { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 }
