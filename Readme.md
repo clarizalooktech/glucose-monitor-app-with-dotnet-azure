@@ -151,4 +151,4 @@ This project is a Glucose Monitor App with a frontend built using React and a ba
 ```
 ## Screenshot
 
-![Glucose Monitor UI](assets/screenshot.png)
+![Glucose Monitor UI](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/front-end.png)
