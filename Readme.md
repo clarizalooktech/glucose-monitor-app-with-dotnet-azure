@@ -87,15 +87,19 @@ This project is a Glucose Monitor App with a frontend built using React and a ba
 │
 ├── src/
 │   ├── api/                         # .NET Backend API
+│   │   ├── bin/                     # Build output (ignored in Git)
+│   │   ├── obj/                     # Build metadata (ignored in Git)
 │   │   ├── Controllers/             # API Controllers (GlucoseController.cs)
 │   │   ├── Models/                  # Data Models (GlucoseReading.cs)
 │   │   ├── Data/                    # Database Context (GlucoseDbContext.cs)
-│   │   ├── Services/                # Business Logic
+│   │   ├── Properties/
+│   │   │   ├── launchSettings.json
 │   │   ├── appsettings.json         # App configuration
 │   │   ├── Program.cs               # Entry point
-│   │   ├── GlucoseMonitor.csproj    # Project file
+│   │   ├── api.csproj               # Project file
 │   │   ├── Dockerfile               # API Dockerfile
-│   │   └── README.md                # API documentation
+│   │   ├── README.md                # API documentation
+│   │   ├── Startup.cs
 │   │
 │   ├── ui/                          # React Frontend
 │       ├── src/                     # React source files
