@@ -7,7 +7,7 @@ variable "resource_group_name" {
 variable "location" {
   description = "The location of the resource group"
   type        = string
-  default     = "East US"
+  default     = "Australia Southeast"
 }
 
 variable "app_service_plan_name" {
@@ -32,4 +32,9 @@ variable "storage_container_name" {
   description = "The name of the Storage Container"
   type        = string
   default     = "tfstate"
+}
+
+variable "app_service_plan_sku_name" {
+  description = "The App Service Plan SKU name (e.g., F1, S1, P1v2)."
+  default     = "F1"
 }

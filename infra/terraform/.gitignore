@@ -1,0 +1,22 @@
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.backup
+crash.log
+crash.*.log
+override.tf
+override-*.tf
+*.terraformrc
+terraform.rc
+
+# Credentials
+*.pem
+
+# Temporary files
+*~
+*.swp
+*.log
+
+# IDE files
+.idea/
+*.vscode/
