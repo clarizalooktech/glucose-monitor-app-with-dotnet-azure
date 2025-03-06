@@ -164,6 +164,6 @@ This project is a Glucose Monitor App with a frontend built using React and a ba
 
 4. Terraform
 
-![Terraform Init](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/terraform-init-successful.png)
-![Terraform Plan](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/terraform-plan-successful.png)
+![Terraform Init](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/terraform-init-successful.jpg)
+![Terraform Plan](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/terraform-plan-successful.jpg)
 
