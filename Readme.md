@@ -157,14 +157,14 @@ This project showcases how DevOps principles are applied, from backend and appli
 ## Screenshots
 1. Front-end
 
-![Glucose Monitor UI](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/front-end.png)
+![Glucose Monitor UI](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/front-end.png)
 
 2. Back-End
 
 3. Cicd
 
-4. Terraform
+4. Terraform (local testing)
 
-![Terraform Init](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/terraform-init-successful.png)
-![Terraform Plan](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/feature/test-docker/assets/terraform-plan-successful.png)
+![Terraform Init](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-init-successful.png)
+![Terraform Plan](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-plan-successful.png)
 
