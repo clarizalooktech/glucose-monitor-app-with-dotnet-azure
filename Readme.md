@@ -3,12 +3,13 @@
 
 This project is a Glucose Monitor App with a frontend built using React and a backend built using .NET. The application will be deployed using Terraform in Azure.
 
+This project showcases how DevOps principles are applied, from backend and application development to infrastructure provisioning, automation, linting, testing and CI/CD pipelines for deploying resources in Azure.
+
 ## Project Structure
 
 - **Frontend**: The frontend is built using React and is located in the `src/ui` directory.
 - **Backend**: The backend is built using .NET and is located in the `src/api` directory.
 - **CI/CD**: GitHub Actions are used for continuous integration and continuous deployment, with workflows defined in the `.github/workflows` directory.
-
 
 
 ## Getting Started
