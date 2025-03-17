@@ -21,10 +21,10 @@ jobs:
       with:
         node-version: '14'
 
-    - name: Install frontend dependencies
-      run: |
-        cd src/ui
-        npm install
+    # - name: Install frontend dependencies
+    #   run: |
+    #     cd src/ui
+    #     npm install
 
     # - name: Build frontend
     #   run: |
@@ -51,10 +51,10 @@ jobs:
     #     cd src/api
     #     dotnet test --configuration Release
 
-    - name: Login to Azure
-      uses: azure/login@v1
+    - name: Azure Login
+      uses: azure/login@v1 # v2 has some issues, v1 is still functional.
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        creds: '{ "clientId": "${{ secrets.AZURE_CLIENT_ID }}", "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}", "tenantId": "${{ secrets.AZURE_TENANT_ID }}", "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}" }'
 
     # - name: Build and push API Docker image
     #   run: |
