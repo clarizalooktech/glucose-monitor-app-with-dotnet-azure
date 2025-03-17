@@ -51,10 +51,10 @@ jobs:
         cd src/api
         dotnet test --configuration Release
 
-        - name: Login to Azure Container Registry
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Login to Azure Container Registry
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     # - name: Build and push API Docker image
     #   run: |
