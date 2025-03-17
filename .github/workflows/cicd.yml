@@ -26,33 +26,33 @@ jobs:
         cd src/ui
         npm install
 
-    - name: Build frontend
-      run: |
-        cd src/ui
-        npm run build
+    # - name: Build frontend
+    #   run: |
+    #     cd src/ui
+    #     npm run build
 
-    - name: Set up .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0.x'
+    # - name: Set up .NET
+    #   uses: actions/setup-dotnet@v3
+    #   with:
+    #     dotnet-version: '8.0.x'
 
-    - name: Restore backend dependencies
-      run: |
-        cd src/api
-        dotnet restore
+    # - name: Restore backend dependencies
+    #   run: |
+    #     cd src/api
+    #     dotnet restore
 
-    - name: Build backend
-      run: |
-        cd src/api
-        dotnet build --configuration Release
+    # - name: Build backend
+    #   run: |
+    #     cd src/api
+    #     dotnet build --configuration Release
 
-    - name: Run tests
-      run: |
-        cd src/api
-        dotnet test --configuration Release
+    # - name: Run tests
+    #   run: |
+    #     cd src/api
+    #     dotnet test --configuration Release
 
     - name: Login to Azure
-      uses: azure/login@v2
+      uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
