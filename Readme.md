@@ -19,7 +19,7 @@ This project is a Glucose Monitor App with a frontend built using React and a ba
 Terraform is used to provision and manage the Azure infrastructure. This allows for consistent and repeatable deployments, version control of infrastructure, and reduced manual configuration.
 
 2. **Continuous Integration/Continuous Deployment (CI/CD)**:
-The workflow you provided outlines CI/CD pipelines.
+The github workflow outlines CI/CD pipeline on deploying the web app and infrastructure.
 
 3. **Containerization**:
 Docker is used to package the .NET backend into a container. This provides consistency across different environments, simplifies deployment, and allows for scalability.
