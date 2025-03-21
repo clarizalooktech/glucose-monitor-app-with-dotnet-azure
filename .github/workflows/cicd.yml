@@ -1,87 +1,186 @@
-name: CI/CD Pipeline
+name: Deploy Infrastructure and Application
 
 on:
   push:
     branches:
-      - main
+      - feature/setting-azure-infrastructure
   pull_request:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
-  build:
+  setup-infra:
     runs-on: ubuntu-latest
+    outputs:
+      acr_name: ${{ steps.terraform-outputs.outputs.acr_name }}
+      acr_login_server: ${{ steps.terraform-outputs.outputs.acr_login_server }}
+      acr_admin_username: ${{ steps.terraform-outputs.outputs.acr_admin_username }}
+      acr_admin_password: ${{ steps.terraform-outputs.outputs.acr_admin_password }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Install frontend dependencies
-      run: |
-        cd src/ui
-        npm install
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-    - name: Build frontend
-      run: |
-        cd src/ui
-        npm run build
+      - name: Terraform Init
+        run: |
+          cd infra/terraform
+          terraform init
 
-    - name: Set up .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0.x'
+      - name: Terraform Apply
+        run: |
+          cd infra/terraform
+          terraform apply -auto-approve
+        env:
+          TF_VAR_resource_group_name: ${{ secrets.TF_VAR_resource_group_name }}
+          TF_VAR_acr_name: ${{ secrets.TF_VAR_acr_name }}
+          TF_VAR_location: ${{ secrets.TF_VAR_location }}
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Restore backend dependencies
-      run: |
-        cd src/api
-        dotnet restore
+      # - name: Get Terraform Outputs
+      #   id: terraform-outputs
+      #   run: |
+      #     cd infra/terraform
+      #     echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
+      #     echo "acr_login_server=$(terraform output -raw acr_login_server)" >> $GITHUB_OUTPUT
+      #     echo "acr_admin_username=$(terraform output -raw acr_admin_username)" >> $GITHUB_OUTPUT
+      #     echo "acr_admin_password=$(terraform output -raw acr_admin_password)" >> $GITHUB_OUTPUT
 
-    - name: Build backend
-      run: |
-        cd src/api
-        dotnet build --configuration Release
-
-    - name: Run tests
-      run: |
-        cd src/api
-        dotnet test --configuration Release
-
-    # - name: Login to Azure Container Registry
-    #   uses: azure/login@v1
-    #   with:
-    #     creds: ${{ secrets.AZURE_CREDENTIALS }} # GitHub Secrets
-
-    # - name: Build and push API Docker image
-    #   run: |
-    #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
-    #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}
-
-    # - name: Build and push UI Docker image
-    #   run: |
-    #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }} -f src/ui/Dockerfile .
-    #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }}
-
-  # deploy:
-  #   needs: build
+  # build-and-deploy:
+  #   needs: terraform
   #   runs-on: ubuntu-latest
   #   steps:
-  #     - name: Deploy API to Azure App Service
-  #       uses: azure/webapps-deploy@v2
+  #     - uses: actions/checkout@v3
+
+  #     - name: Azure Login
+  #       uses: azure/login@v2
   #       with:
-  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
-  #         app-name: 'YourAppName'
-  #         images: '${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}'
-  #     - name: Deploy UI to Azure Static Web App
-  #       uses: azure/static-web-apps-deploy@v1
+  #         client-id: ${{ secrets.AZURE_CLIENT_ID }}
+  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  #     - name: Docker Login to ACR
+  #       uses: azure/docker-login@v1
   #       with:
-  #         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-  #         repo_token: ${{ secrets.GITHUB_TOKEN }}
-  #         action: "upload"
-  #         app_location: "/src/ui/build"
-  #         api_location: ""
-  #         output_location: ""
+  #         login-server: ${{ needs.terraform.outputs.acr_login_server }}
+  #         username: ${{ needs.terraform.outputs.acr_admin_username }}
+  #         password: ${{ needs.terraform.outputs.acr_admin_password }}
+
+  #     - name: Build and Push API Docker Image
+  #       run: |
+  #         docker build -t ${{ needs.terraform.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
+  #         docker push ${{ needs.terraform.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+
+
+
+
+
+
+
+
+
+
+
+# on:
+#   push:
+#     branches:
+#       - feature/setting-azure-infrastructure
+#   pull_request:
+#     branches:
+#       - main
+
+# permissions: #OIDC for Azure
+#   id-token: write
+#   contents: read
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+
+#     - name: Set up Node.js
+#       uses: actions/setup-node@v2
+#       with:
+#         node-version: '14'
+
+    # - name: Install frontend dependencies
+    #   run: |
+    #     cd src/ui
+    #     npm install
+
+    # - name: Build frontend
+    #   run: |
+    #     cd src/ui
+    #     npm run build
+
+    # - name: Set up .NET
+    #   uses: actions/setup-dotnet@v3
+    #   with:
+    #     dotnet-version: '8.0.x'
+
+    # - name: Restore backend dependencies
+    #   run: |
+    #     cd src/api
+    #     dotnet restore
+
+    # - name: Build backend
+    #   run: |
+    #     cd src/api
+    #     dotnet build --configuration Release
+
+    # - name: Run tests
+    #   run: |
+    #     cd src/api
+    #     dotnet test --configuration Release
+
+  #   - name: 'Azure login'
+  #     uses: azure/login@v2
+  #     with:
+  #       client-id: ${{ secrets.AZURE_CLIENT_ID }}
+  #       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+  #       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  #   # - name: Build and push API Docker image
+  #   #   run: |
+  #   #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
+  #   #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}
+
+  #   # - name: Build and push UI Docker image
+  #   #   run: |
+  #   #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }} -f src/ui/Dockerfile .
+  #   #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }}
+
+  # # deploy:
+  # #   needs: build
+  # #   runs-on: ubuntu-latest
+  # #   steps:
+  # #     - name: Deploy API to Azure App Service
+  # #       uses: azure/webapps-deploy@v2
+  # #       with:
+  # #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+  # #         app-name: 'YourAppName'
+  # #         images: '${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}'
+  # #     - name: Deploy UI to Azure Static Web App
+  # #       uses: azure/static-web-apps-deploy@v1
+  # #       with:
+  # #         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+  # #         repo_token: ${{ secrets.GITHUB_TOKEN }}
+  # #         action: "upload"
+  # #         app_location: "/src/ui/build"
+  # #         api_location: ""
+  # #         output_location: ""
