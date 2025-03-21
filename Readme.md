@@ -3,18 +3,46 @@
 
 This project is a Glucose Monitor App with a frontend built using React and a backend built using .NET. The application will be deployed using Terraform in Azure.
 
-This project showcases how DevOps principles are applied, from backend and application development to infrastructure provisioning, automation, linting, testing and CI/CD pipelines for deploying resources in Azure.
+### Project Overview
+- **Functionality**: A Glucose Monitor App designed to track and manage blood glucose levels.
+- **Frontend**: Built using React, providing a user-friendly interface.
+- **Backend**: Developed with .NET, handling data processing, storage, and API interactions.
+- **Infrastructure**: Deployed on Azure using Terraform, enabling Infrastructure as Code (IaC).
+- **Containerization**: The .NET backend is containerized using Docker and pushed to Azure Container Registry (ACR).
+- **Deployment**:
+  - The .NET API is deployed to Azure App Service.
+  - The React UI is deployed to Azure Static Web Apps.
+- **DevOps Focus**: Emphasizes automation, CI/CD, and infrastructure management.
 
-## Project Structure
+### DevOps Principles Demonstrated:
+1. **Infrastructure as Code (IaC)**:
+Terraform is used to provision and manage the Azure infrastructure. This allows for consistent and repeatable deployments, version control of infrastructure, and reduced manual configuration.
 
-- **Frontend**: The frontend is built using React and is located in the `src/ui` directory.
-- **Backend**: The backend is built using .NET and is located in the `src/api` directory.
-- **CI/CD**: GitHub Actions are used for continuous integration and continuous deployment, with workflows defined in the `.github/workflows` directory.
+2. **Continuous Integration/Continuous Deployment (CI/CD)**:
+The workflow you provided outlines CI/CD pipelines.
+
+3. **Containerization**:
+Docker is used to package the .NET backend into a container. This provides consistency across different environments, simplifies deployment, and allows for scalability.
+Azure Container Registry(ACR) is used to store the docker images.
+
+3. **Automation**:
+The CI/CD pipelines automate the build, test, and deployment processes, reducing manual effort and potential errors.
+Terraform automates the creation of the infrastructure.
+
+### Key Technologies:
+
+- React: Frontend framework.
+- .NET: Backend framework.
+- Docker: Containerization platform.
+- Azure Container Registry (ACR): Container image registry.
+- Azure App Service: Platform for hosting web applications and APIs.
+- Azure Static Web Apps: Platform for hosting static web applications.
+- Terraform: Infrastructure as Code tool.
+- Git: Version control system.
+- Azure DevOps/GitHub Actions: CI/CD platforms.
 
 
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Node.js and npm
 - .NET SDK
@@ -24,13 +52,13 @@ This project showcases how DevOps principles are applied, from backend and appli
 ### Setting Up the Frontend
 
 1. Navigate to the `src/ui` directory:
-   ```sh
-   cd src/ui
-   ```
+  ```
+  cd src/ui
+  ```
 
 2. Install the dependencies:
   ```
-   npm install
+  npm install
   ```
 
 3. Start the development server:
