@@ -1,3 +1,4 @@
+/*
 terraform {
   backend "azurerm" {
     resource_group_name  = "glucose-monitor-rg"
@@ -6,3 +7,4 @@ terraform {
     key                  = "terraform.tfstate"
   }
 }
+*/
