@@ -1,5 +1,6 @@
-provider "azurerm" {
+pprovider "azurerm" {
   features {}
+  subscription_id = var.subscription_id
 }
 
 # Resource Group
