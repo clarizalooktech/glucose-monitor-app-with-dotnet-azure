@@ -1,40 +1,15 @@
 variable "resource_group_name" {
-  description = "The name of the resource group"
+  description = "Name of the Azure Resource Group"
   type        = string
-  default     = "glucose-monitor-rg"
 }
 
 variable "location" {
-  description = "The location of the resource group"
+  description = "Azure region to deploy resources"
   type        = string
-  default     = "Australia Southeast"
+  default     = "eastus"
 }
 
-variable "app_service_plan_name" {
-  description = "The name of the App Service Plan"
+variable "acr_name" {
+  description = "Name of the Azure Container Registry"
   type        = string
-  default     = "glucose-monitor-asp"
-}
-
-variable "app_service_name" {
-  description = "The name of the App Service"
-  type        = string
-  default     = "glucose-monitor-app"
-}
-
-variable "storage_account_name" {
-  description = "The name of the Storage Account"
-  type        = string
-  default     = "glucosemonitorstorage"
-}
-
-variable "storage_container_name" {
-  description = "The name of the Storage Container"
-  type        = string
-  default     = "tfstate"
-}
-
-variable "app_service_plan_sku_name" {
-  description = "The App Service Plan SKU name (e.g., F1, S1, P1v2)."
-  default     = "F1"
 }
