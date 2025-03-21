@@ -2,6 +2,7 @@ output "resource_group_name" {
   value = azurerm_resource_group.rg.name
 }
 
+/*
 output "app_service_plan_name" {
   value = azurerm_service_plan.asp.name
 }
@@ -25,3 +26,4 @@ output "storage_container_name" {
 output "storage_account_primary_blob_endpoint" {
   value = azurerm_storage_account.sa.primary_blob_endpoint
 }
+*/
