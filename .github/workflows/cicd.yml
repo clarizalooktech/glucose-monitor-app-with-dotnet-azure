@@ -52,11 +52,13 @@ jobs:
       - name: Get Terraform Outputs
         id: terraform-outputs
         run: |
+          sudo apt-get update && sudo apt-get install -y jq
           cd infra/terraform
-          echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
-          echo "acr_login_server=$(terraform output -raw acr_login_server)" >> $GITHUB_OUTPUT
-          echo "acr_admin_username=$(terraform output -raw acr_admin_username)" >> $GITHUB_OUTPUT
-          echo "acr_admin_password=$(terraform output -raw acr_admin_password)" >> $GITHUB_OUTPUT
+          output=$(terraform output -json)
+          echo "acr_name=$(echo "$output" | jq -r '.acr_name.value')" >> $GITHUB_OUTPUT
+          echo "acr_login_server=$(echo "$output" | jq -r '.acr_login_server.value')" >> $GITHUB_OUTPUT
+          echo "acr_admin_username=$(echo "$output" | jq -r '.acr_admin_username.value')" >> $GITHUB_OUTPUT
+          echo "acr_admin_password=$(echo "$output" | jq -r '.acr_admin_password.value')" >> $GITHUB_OUTPUT
 
   build-and-deploy:
     needs: setup-infra
