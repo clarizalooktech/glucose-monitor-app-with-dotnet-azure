@@ -105,14 +105,44 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Docker Login to ACR
+      # Debug outputs received from previous job
+      - name: Debug ACR Credentials
+        run: |
+          echo "ACR Name: ${{ needs.setup-infra.outputs.acr_name }}"
+          echo "ACR Login Server: ${{ needs.setup-infra.outputs.acr_login_server }}"
+          echo "ACR Username: ${{ needs.setup-infra.outputs.acr_admin_username }}"
+          echo "ACR Password: [xxxxxxx]"
+
+          # Check if we received the username
+          if [ -z "${{ needs.setup-infra.outputs.acr_admin_username }}" ]; then
+            echo "ERROR: Username is empty!"
+          else
+            echo "Username is not empty"
+          fi
+
+      # Alternative direct approach
+      - name: Get ACR Credentials Directly
+        id: get-direct-creds
+        run: |
+          ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
+          RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
+
+          ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --resource-group $RG_NAME --query "loginServer" --output tsv)
+          ACR_USERNAME=$(az acr credential show --name $ACR_NAME --resource-group $RG_NAME --query "username" --output tsv)
+          ACR_PASSWORD=$(az acr credential show --name $ACR_NAME --resource-group $RG_NAME --query "passwords[0].value" --output tsv)
+
+          echo "login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+          echo "username=$ACR_USERNAME" >> $GITHUB_OUTPUT
+          echo "password=$ACR_PASSWORD" >> $GITHUB_ENV
+
+      - name: Docker Login to ACR using Direct Credentials
         uses: azure/docker-login@v1
         with:
-          login-server: ${{ needs.setup-infra.outputs.acr_login_server }}
-          username: ${{ needs.setup-infra.outputs.acr_admin_username }}
-          password: ${{ needs.setup-infra.outputs.acr_admin_password }}
+          login-server: ${{ steps.get-direct-creds.outputs.login_server }}
+          username: ${{ steps.get-direct-creds.outputs.username }}
+          password: ${{ env.password }}
 
       - name: Build and Push API Docker Image
         run: |
-          docker build -t ${{ needs.setup-infra.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
-          docker push ${{ needs.setup-infra.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+          docker build -t ${{ steps.get-direct-creds.outputs.login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
+          docker push ${{ steps.get-direct-creds.outputs.login_server }}/glucose-monitor-api:${{ github.sha }}
