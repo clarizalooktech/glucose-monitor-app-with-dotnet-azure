@@ -128,6 +128,14 @@ jobs:
           echo "Logging in to ACR using Azure CLI..."
           az acr login --name $ACR_NAME
 
+
+      # Check Dockerfile presence
+      - name: Verify Dockerfile
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Listing src/api directory:"
+          ls -la src/api
+
       # Build and push the Docker image
       - name: Build and Push API Docker Image
         run: |
