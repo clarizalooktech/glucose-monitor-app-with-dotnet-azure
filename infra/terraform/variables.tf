@@ -1,12 +1,6 @@
 variable "resource_group_name" {
-  description = "Name of the Azure Resource Group"
+  description = "Name of the resource group"
   type        = string
-}
-
-variable "location" {
-  description = "Azure region to deploy resources"
-  type        = string
-  default     = "australiasoutheast"
 }
 
 variable "acr_name" {
@@ -14,7 +8,19 @@ variable "acr_name" {
   type        = string
 }
 
-variable "subscription_id" {
+variable "location" {
+  description = "Azure region where resources should be created"
   type        = string
-  description = "The Azure subscription ID"
+  default     = "eastus"
+}
+
+variable "subscription_id" {
+  description = "Azure Subscription ID"
+  type        = string
+}
+
+variable "create_infrastructure" {
+  description = "Whether to create new infrastructure or use existing resources"
+  type        = bool
+  default     = false
 }

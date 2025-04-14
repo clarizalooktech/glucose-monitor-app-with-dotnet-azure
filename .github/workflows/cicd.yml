@@ -39,16 +39,21 @@ jobs:
           cd infra/terraform
           terraform init
 
-      - name: Check if this is first deployment
-        id: check-first-deployment
+      # Check if resources already exist
+      - name: Check if infrastructure exists
+        id: check-infrastructure
         run: |
-          FIRST_TIME=false
-          # Try to get resource group
+          # Check if resource group exists
           RG_EXISTS=$(az group exists --name ${{ secrets.TF_VAR_resource_group_name }})
+
+          # If resource group doesn't exist, this is first deployment
           if [ "$RG_EXISTS" = "false" ]; then
-            FIRST_TIME=true
+            echo "First deployment - will create infrastructure"
+            echo "create_infrastructure=true" >> $GITHUB_OUTPUT
+          else
+            echo "Resource group already exists - will reuse infrastructure"
+            echo "create_infrastructure=false" >> $GITHUB_OUTPUT
           fi
-          echo "create_infrastructure=$FIRST_TIME" >> $GITHUB_OUTPUT
 
       - name: Terraform Apply
         run: |
@@ -59,37 +64,22 @@ jobs:
           TF_VAR_acr_name: ${{ secrets.TF_VAR_acr_name }}
           TF_VAR_location: ${{ secrets.TF_VAR_location }}
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_create_infrastructure: ${{ steps.check-infrastructure.outputs.create_infrastructure }}
 
       - name: Get Terraform Outputs
         id: terraform-outputs
         run: |
-          sudo apt-get update && sudo apt-get install -y jq
           cd infra/terraform
-          output=$(terraform output -json)
-          echo "acr_name=$(echo "$output" | jq -r '.acr_name.value')" >> $GITHUB_OUTPUT
-          echo "acr_login_server=$(echo "$output" | jq -r '.acr_login_server.value')" >> $GITHUB_OUTPUT
-          echo "acr_admin_username=$(echo "$output" | jq -r '.acr_admin_username.value')" >> $GITHUB_OUTPUT
-          echo "acr_admin_password=$(echo "$output" | jq -r '.acr_admin_password.value')" >> $GITHUB_OUTPUT
-
-      # Debug outputs
-      - name: Debug Outputs
-        run: |
-          echo "ACR Name: ${{ steps.terraform-outputs.outputs.acr_name }}"
-          echo "ACR Login Server: ${{ steps.terraform-outputs.outputs.acr_login_server }}"
-          echo "ACR Admin Username: ${{ steps.terraform-outputs.outputs.acr_admin_username }}"
+          echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
+          echo "acr_login_server=$(terraform output -raw acr_login_server)" >> $GITHUB_OUTPUT
+          echo "acr_admin_username=$(terraform output -raw acr_admin_username)" >> $GITHUB_OUTPUT
+          echo "acr_admin_password=$(terraform output -raw acr_admin_password)" >> $GITHUB_OUTPUT
 
   build-and-deploy:
     needs: setup-infra
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      # Debug received outputs
-      - name: Debug Received Outputs
-        run: |
-          echo "Received ACR Name: ${{ needs.setup-infra.outputs.acr_name }}"
-          echo "Received ACR Login Server: ${{ needs.setup-infra.outputs.acr_login_server }}"
-          echo "Received ACR Admin Username: ${{ needs.setup-infra.outputs.acr_admin_username }}"
 
       - name: Azure Login
         uses: azure/login@v2
@@ -109,105 +99,3 @@ jobs:
         run: |
           docker build -t ${{ needs.setup-infra.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
           docker push ${{ needs.setup-infra.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
-
-
-
-
-
-
-
-
-
-
-
-# on:
-#   push:
-#     branches:
-#       - feature/setting-azure-infrastructure
-#   pull_request:
-#     branches:
-#       - main
-
-# permissions: #OIDC for Azure
-#   id-token: write
-#   contents: read
-
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v2
-
-#     - name: Set up Node.js
-#       uses: actions/setup-node@v2
-#       with:
-#         node-version: '14'
-
-    # - name: Install frontend dependencies
-    #   run: |
-    #     cd src/ui
-    #     npm install
-
-    # - name: Build frontend
-    #   run: |
-    #     cd src/ui
-    #     npm run build
-
-    # - name: Set up .NET
-    #   uses: actions/setup-dotnet@v3
-    #   with:
-    #     dotnet-version: '8.0.x'
-
-    # - name: Restore backend dependencies
-    #   run: |
-    #     cd src/api
-    #     dotnet restore
-
-    # - name: Build backend
-    #   run: |
-    #     cd src/api
-    #     dotnet build --configuration Release
-
-    # - name: Run tests
-    #   run: |
-    #     cd src/api
-    #     dotnet test --configuration Release
-
-  #   - name: 'Azure login'
-  #     uses: azure/login@v2
-  #     with:
-  #       client-id: ${{ secrets.AZURE_CLIENT_ID }}
-  #       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-  #       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-  #   # - name: Build and push API Docker image
-  #   #   run: |
-  #   #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
-  #   #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}
-
-  #   # - name: Build and push UI Docker image
-  #   #   run: |
-  #   #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }} -f src/ui/Dockerfile .
-  #   #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }}
-
-  # # deploy:
-  # #   needs: build
-  # #   runs-on: ubuntu-latest
-  # #   steps:
-  # #     - name: Deploy API to Azure App Service
-  # #       uses: azure/webapps-deploy@v2
-  # #       with:
-  # #         creds: ${{ secrets.AZURE_CREDENTIALS }}
-  # #         app-name: 'YourAppName'
-  # #         images: '${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}'
-  # #     - name: Deploy UI to Azure Static Web App
-  # #       uses: azure/static-web-apps-deploy@v1
-  # #       with:
-  # #         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-  # #         repo_token: ${{ secrets.GITHUB_TOKEN }}
-  # #         action: "upload"
-  # #         app_location: "/src/ui/build"
-  # #         api_location: ""
-  # #         output_location: ""

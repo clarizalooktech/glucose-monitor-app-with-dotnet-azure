@@ -3,8 +3,21 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-# Resource Group
+# Check if resource group exists
+data "azurerm_resource_group" "existing" {
+  count = var.create_infrastructure ? 0 : 1
+  name  = var.resource_group_name
+}
+
+# Create resource group only if it doesn't exist and create_infrastructure is true
 resource "azurerm_resource_group" "rg" {
+  count    = var.create_infrastructure ? 1 : 0
   name     = var.resource_group_name
   location = var.location
+}
+
+# Local to reference the correct resource group properties
+locals {
+  resource_group_name     = var.create_infrastructure ? (length(azurerm_resource_group.rg) > 0 ? azurerm_resource_group.rg[0].name : var.resource_group_name) : data.azurerm_resource_group.existing[0].name
+  resource_group_location = var.create_infrastructure ? (length(azurerm_resource_group.rg) > 0 ? azurerm_resource_group.rg[0].location : var.location) : data.azurerm_resource_group.existing[0].location
 }
