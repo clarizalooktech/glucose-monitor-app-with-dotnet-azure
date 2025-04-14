@@ -66,7 +66,7 @@ jobs:
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           TF_VAR_create_infrastructure: ${{ steps.check-infrastructure.outputs.create_infrastructure }}
 
-      # Get ACR info directly from Azure CLI as a fallback
+      # Get ACR info directly from Azure CLI
       - name: Get ACR Information
         id: get-acr-info
         run: |
@@ -105,29 +105,34 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Alternative direct approach
-      - name: Get ACR Credentials Directly
-        id: get-direct-creds
+      # Get ACR info and set it as a variable
+      - name: Get ACR Information
+        id: acr-info
         run: |
           ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
           RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
 
+          # Get ACR login server
           ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --resource-group $RG_NAME --query "loginServer" --output tsv)
-          ACR_USERNAME=$(az acr credential show --name $ACR_NAME --resource-group $RG_NAME --query "username" --output tsv)
-          ACR_PASSWORD=$(az acr credential show --name $ACR_NAME --resource-group $RG_NAME --query "passwords[0].value" --output tsv)
+          echo "ACR Login Server: $ACR_LOGIN_SERVER"
 
-          echo "login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
-          echo "username=$ACR_USERNAME" >> $GITHUB_OUTPUT
-          echo "password=$ACR_PASSWORD" >> $GITHUB_ENV
+          # Set output variable
+          echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
 
-      - name: Docker Login to ACR using Direct Credentials
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{ steps.get-direct-creds.outputs.login_server }}
-          username: ${{ steps.get-direct-creds.outputs.username }}
-          password: ${{ env.password }}
+      # Directly login to ACR using Azure CLI
+      - name: Log in to ACR using Azure CLI
+        run: |
+          ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
 
+          # Login to ACR using Azure CLI
+          echo "Logging in to ACR using Azure CLI..."
+          az acr login --name $ACR_NAME
+
+      # Build and push the Docker image
       - name: Build and Push API Docker Image
         run: |
-          docker build -t ${ACR_LOGIN_SERVER}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile ./src/api
-          docker push ${ACR_LOGIN_SERVER}/glucose-monitor-api:${{ github.sha }}
+          # Build image with explicit ACR login server from step output
+          docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile ./src/api
+
+          # Push the image
+          docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
