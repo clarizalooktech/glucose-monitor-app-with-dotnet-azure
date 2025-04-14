@@ -76,14 +76,14 @@ jobs:
       - name: Docker Login to ACR
         uses: azure/docker-login@v1
         with:
-          login-server: ${{ needs.terraform.outputs.acr_login_server }}
-          username: ${{ needs.terraform.outputs.acr_admin_username }}
-          password: ${{ needs.terraform.outputs.acr_admin_password }}
+          login-server: ${{ needs.setup-infra.outputs.acr_login_server }}
+          username: ${{ needs.setup-infra.outputs.acr_admin_username }}
+          password: ${{ needs.setup-infra.outputs.acr_admin_password }}
 
       - name: Build and Push API Docker Image
         run: |
-          docker build -t ${{ needs.terraform.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
-          docker push ${{ needs.terraform.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+          docker build -t ${{ needs.setup-infra.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
+          docker push ${{ needs.setup-infra.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
 
 
 
