@@ -39,6 +39,17 @@ jobs:
           cd infra/terraform
           terraform init
 
+      - name: Check if this is first deployment
+        id: check-first-deployment
+        run: |
+          FIRST_TIME=false
+          # Try to get resource group
+          RG_EXISTS=$(az group exists --name ${{ secrets.TF_VAR_resource_group_name }})
+          if [ "$RG_EXISTS" = "false" ]; then
+            FIRST_TIME=true
+          fi
+          echo "create_infrastructure=$FIRST_TIME" >> $GITHUB_OUTPUT
+
       - name: Terraform Apply
         run: |
           cd infra/terraform
