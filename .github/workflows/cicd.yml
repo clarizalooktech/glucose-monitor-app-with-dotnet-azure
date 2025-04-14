@@ -60,11 +60,25 @@ jobs:
           echo "acr_admin_username=$(echo "$output" | jq -r '.acr_admin_username.value')" >> $GITHUB_OUTPUT
           echo "acr_admin_password=$(echo "$output" | jq -r '.acr_admin_password.value')" >> $GITHUB_OUTPUT
 
+      # Debug outputs
+      - name: Debug Outputs
+        run: |
+          echo "ACR Name: ${{ steps.terraform-outputs.outputs.acr_name }}"
+          echo "ACR Login Server: ${{ steps.terraform-outputs.outputs.acr_login_server }}"
+          echo "ACR Admin Username: ${{ steps.terraform-outputs.outputs.acr_admin_username }}"
+
   build-and-deploy:
     needs: setup-infra
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      # Debug received outputs
+      - name: Debug Received Outputs
+        run: |
+          echo "Received ACR Name: ${{ needs.setup-infra.outputs.acr_name }}"
+          echo "Received ACR Login Server: ${{ needs.setup-infra.outputs.acr_login_server }}"
+          echo "Received ACR Admin Username: ${{ needs.setup-infra.outputs.acr_admin_username }}"
 
       - name: Azure Login
         uses: azure/login@v2
