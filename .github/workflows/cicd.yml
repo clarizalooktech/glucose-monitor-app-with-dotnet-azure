@@ -105,21 +105,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Debug outputs received from previous job
-      - name: Debug ACR Credentials
-        run: |
-          echo "ACR Name: ${{ needs.setup-infra.outputs.acr_name }}"
-          echo "ACR Login Server: ${{ needs.setup-infra.outputs.acr_login_server }}"
-          echo "ACR Username: ${{ needs.setup-infra.outputs.acr_admin_username }}"
-          echo "ACR Password: [xxxxxxx]"
-
-          # Check if we received the username
-          if [ -z "${{ needs.setup-infra.outputs.acr_admin_username }}" ]; then
-            echo "ERROR: Username is empty!"
-          else
-            echo "Username is not empty"
-          fi
-
       # Alternative direct approach
       - name: Get ACR Credentials Directly
         id: get-direct-creds
@@ -144,5 +129,5 @@ jobs:
 
       - name: Build and Push API Docker Image
         run: |
-          docker build -t ${{ steps.get-direct-creds.outputs.login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
+          docker build -t ${{ steps.get-direct-creds.outputs.login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile ./src/api
           docker push ${{ steps.get-direct-creds.outputs.login_server }}/glucose-monitor-api:${{ github.sha }}
