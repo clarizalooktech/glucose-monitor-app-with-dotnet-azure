@@ -127,15 +127,6 @@ jobs:
           username: ${{ steps.get-direct-creds.outputs.username }}
           password: ${{ env.password }}
 
-      # Show directory structure for debugging
-      - name: Debug - Show Directory Structure
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Listing src directory:"
-          ls -la src
-          echo "Listing src/api directory:"
-          ls -la src/api
-
       - name: Build and Push API Docker Image
         run: |
           docker build -t ${{ steps.get-direct-creds.outputs.login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile ./src/api
