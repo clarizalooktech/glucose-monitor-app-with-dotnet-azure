@@ -191,8 +191,21 @@ Terraform automates the creation of the infrastructure.
 
 3. Cicd
 
+![Cicd Build and Push Image to Azure Container Registry](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/cicd-build-and-push-image.PNG)
+
 4. Terraform (local testing)
 
 ![Terraform Init](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-init-successful.png)
 ![Terraform Plan](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-plan-successful.png)
+
+4. Terraform (during deployment to Azure)
+
+![Terraform Apply](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/cicd-terraform-apply.png)
+
+5. Azure Deployed Resources
+
+![Azure Application Registration](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/Azure-Application-Registration.png)
+
+![Image Pushed in the Container Registry with the Backend Api](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/After-docker-push-image-in-Acr-Container-Registry.png)
+
 

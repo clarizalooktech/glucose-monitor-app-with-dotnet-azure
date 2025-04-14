@@ -39,148 +39,101 @@ jobs:
           cd infra/terraform
           terraform init
 
-      # - name: Terraform Apply
-      #   run: |
-      #     cd infra/terraform
-      #     terraform apply -auto-approve
-      #   env:
-      #     TF_VAR_resource_group_name: ${{ secrets.TF_VAR_resource_group_name }}
-      #     TF_VAR_acr_name: ${{ secrets.TF_VAR_acr_name }}
-      #     TF_VAR_location: ${{ secrets.TF_VAR_location }}
-      #     TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # Check if resources already exist
+      - name: Check if infrastructure exists
+        id: check-infrastructure
+        run: |
+          # Check if resource group exists
+          RG_EXISTS=$(az group exists --name ${{ secrets.TF_VAR_resource_group_name }})
 
-      # - name: Get Terraform Outputs
-      #   id: terraform-outputs
-      #   run: |
-      #     cd infra/terraform
-      #     echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
-      #     echo "acr_login_server=$(terraform output -raw acr_login_server)" >> $GITHUB_OUTPUT
-      #     echo "acr_admin_username=$(terraform output -raw acr_admin_username)" >> $GITHUB_OUTPUT
-      #     echo "acr_admin_password=$(terraform output -raw acr_admin_password)" >> $GITHUB_OUTPUT
+          # If resource group doesn't exist, this is first deployment
+          if [ "$RG_EXISTS" = "false" ]; then
+            echo "First deployment - will create infrastructure"
+            echo "create_infrastructure=true" >> $GITHUB_OUTPUT
+          else
+            echo "Resource group already exists - will reuse infrastructure"
+            echo "create_infrastructure=false" >> $GITHUB_OUTPUT
+          fi
 
-  # build-and-deploy:
-  #   needs: terraform
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+      - name: Terraform Apply
+        run: |
+          cd infra/terraform
+          terraform apply -auto-approve
+        env:
+          TF_VAR_resource_group_name: ${{ secrets.TF_VAR_resource_group_name }}
+          TF_VAR_acr_name: ${{ secrets.TF_VAR_acr_name }}
+          TF_VAR_location: ${{ secrets.TF_VAR_location }}
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_create_infrastructure: ${{ steps.check-infrastructure.outputs.create_infrastructure }}
 
-  #     - name: Azure Login
-  #       uses: azure/login@v2
-  #       with:
-  #         client-id: ${{ secrets.AZURE_CLIENT_ID }}
-  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # Get ACR info directly from Azure CLI
+      - name: Get ACR Information
+        id: get-acr-info
+        run: |
+          # Get ACR information directly from Azure CLI
+          ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
 
-  #     - name: Docker Login to ACR
-  #       uses: azure/docker-login@v1
-  #       with:
-  #         login-server: ${{ needs.terraform.outputs.acr_login_server }}
-  #         username: ${{ needs.terraform.outputs.acr_admin_username }}
-  #         password: ${{ needs.terraform.outputs.acr_admin_password }}
+          # Verify ACR exists
+          ACR_EXISTS=$(az acr check-name --name $ACR_NAME --query "nameAvailable" --output tsv)
 
-  #     - name: Build and Push API Docker Image
-  #       run: |
-  #         docker build -t ${{ needs.terraform.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
-  #         docker push ${{ needs.terraform.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+          if [ "$ACR_EXISTS" = "false" ]; then
+            echo "ACR exists - getting details"
+            ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --resource-group ${{ secrets.TF_VAR_resource_group_name }} --query "loginServer" --output tsv)
+            ACR_ADMIN_USERNAME=$(az acr credential show --name $ACR_NAME --resource-group ${{ secrets.TF_VAR_resource_group_name }} --query "username" --output tsv)
+            ACR_ADMIN_PASSWORD=$(az acr credential show --name $ACR_NAME --resource-group ${{ secrets.TF_VAR_resource_group_name }} --query "passwords[0].value" --output tsv)
 
+            echo "acr_name=$ACR_NAME" >> $GITHUB_OUTPUT
+            echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+            echo "acr_admin_username=$ACR_ADMIN_USERNAME" >> $GITHUB_OUTPUT
+            echo "acr_admin_password=$ACR_ADMIN_PASSWORD" >> $GITHUB_OUTPUT
+            echo "Retrieved ACR info from Azure CLI"
+          else
+            echo "Error: ACR not found"
+            exit 1
+          fi
 
+  build-and-deploy:
+    needs: setup-infra
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # Get ACR info and set it as a variable
+      - name: Get ACR Information
+        id: acr-info
+        run: |
+          ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
+          RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
 
+          # Get ACR login server
+          ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --resource-group $RG_NAME --query "loginServer" --output tsv)
+          echo "ACR Login Server: $ACR_LOGIN_SERVER"
 
+          # Set output variable
+          echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
 
+      # Directly login to ACR using Azure CLI
+      - name: Log in to ACR using Azure CLI
+        run: |
+          ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
 
+          # Login to ACR using Azure CLI
+          echo "Logging in to ACR using Azure CLI..."
+          az acr login --name $ACR_NAME
 
+      # Build and push the Docker image
+      - name: Build and Push API Docker Image
+        run: |
+          # Build image
+          cd src/api
+          docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f Dockerfile .
 
-
-# on:
-#   push:
-#     branches:
-#       - feature/setting-azure-infrastructure
-#   pull_request:
-#     branches:
-#       - main
-
-# permissions: #OIDC for Azure
-#   id-token: write
-#   contents: read
-
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v2
-
-#     - name: Set up Node.js
-#       uses: actions/setup-node@v2
-#       with:
-#         node-version: '14'
-
-    # - name: Install frontend dependencies
-    #   run: |
-    #     cd src/ui
-    #     npm install
-
-    # - name: Build frontend
-    #   run: |
-    #     cd src/ui
-    #     npm run build
-
-    # - name: Set up .NET
-    #   uses: actions/setup-dotnet@v3
-    #   with:
-    #     dotnet-version: '8.0.x'
-
-    # - name: Restore backend dependencies
-    #   run: |
-    #     cd src/api
-    #     dotnet restore
-
-    # - name: Build backend
-    #   run: |
-    #     cd src/api
-    #     dotnet build --configuration Release
-
-    # - name: Run tests
-    #   run: |
-    #     cd src/api
-    #     dotnet test --configuration Release
-
-  #   - name: 'Azure login'
-  #     uses: azure/login@v2
-  #     with:
-  #       client-id: ${{ secrets.AZURE_CLIENT_ID }}
-  #       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-  #       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-  #   # - name: Build and push API Docker image
-  #   #   run: |
-  #   #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }} -f src/api/Dockerfile .
-  #   #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}
-
-  #   # - name: Build and push UI Docker image
-  #   #   run: |
-  #   #     docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }} -f src/ui/Dockerfile .
-  #   #     docker push ${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-ui:${{ github.sha }}
-
-  # # deploy:
-  # #   needs: build
-  # #   runs-on: ubuntu-latest
-  # #   steps:
-  # #     - name: Deploy API to Azure App Service
-  # #       uses: azure/webapps-deploy@v2
-  # #       with:
-  # #         creds: ${{ secrets.AZURE_CREDENTIALS }}
-  # #         app-name: 'YourAppName'
-  # #         images: '${{ secrets.ACR_NAME }}.azurecr.io/glucose-monitor-api:${{ github.sha }}'
-  # #     - name: Deploy UI to Azure Static Web App
-  # #       uses: azure/static-web-apps-deploy@v1
-  # #       with:
-  # #         azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-  # #         repo_token: ${{ secrets.GITHUB_TOKEN }}
-  # #         action: "upload"
-  # #         app_location: "/src/ui/build"
-  # #         api_location: ""
-  # #         output_location: ""
+          # Push the image
+          docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}

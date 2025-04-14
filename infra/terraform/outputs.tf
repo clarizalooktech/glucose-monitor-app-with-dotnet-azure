@@ -1,5 +1,5 @@
 output "resource_group_name" {
-  value = azurerm_resource_group.rg.name
+  value = local.resource_group_name
 }
 
 output "acr_name" {
@@ -7,14 +7,14 @@ output "acr_name" {
 }
 
 output "acr_login_server" {
-  value = azurerm_container_registry.acr.login_server
+  value = local.acr_login_server
 }
 
 output "acr_admin_username" {
-  value = azurerm_container_registry.acr.admin_username
+  value = local.acr_admin_username
 }
 
 output "acr_admin_password" {
-  value     = azurerm_container_registry.acr.admin_password
+  value     = local.acr_admin_password
   sensitive = true
 }
