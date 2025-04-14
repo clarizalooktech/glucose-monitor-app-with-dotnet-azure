@@ -66,14 +66,31 @@ jobs:
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           TF_VAR_create_infrastructure: ${{ steps.check-infrastructure.outputs.create_infrastructure }}
 
-      - name: Get Terraform Outputs
-        id: terraform-outputs
+      # Get ACR info directly from Azure CLI as a fallback
+      - name: Get ACR Information
+        id: get-acr-info
         run: |
-          cd infra/terraform
-          echo "acr_name=$(terraform output -raw acr_name)" >> $GITHUB_OUTPUT
-          echo "acr_login_server=$(terraform output -raw acr_login_server)" >> $GITHUB_OUTPUT
-          echo "acr_admin_username=$(terraform output -raw acr_admin_username)" >> $GITHUB_OUTPUT
-          echo "acr_admin_password=$(terraform output -raw acr_admin_password)" >> $GITHUB_OUTPUT
+          # Get ACR information directly from Azure CLI
+          ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
+
+          # Verify ACR exists
+          ACR_EXISTS=$(az acr check-name --name $ACR_NAME --query "nameAvailable" --output tsv)
+
+          if [ "$ACR_EXISTS" = "false" ]; then
+            echo "ACR exists - getting details"
+            ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --resource-group ${{ secrets.TF_VAR_resource_group_name }} --query "loginServer" --output tsv)
+            ACR_ADMIN_USERNAME=$(az acr credential show --name $ACR_NAME --resource-group ${{ secrets.TF_VAR_resource_group_name }} --query "username" --output tsv)
+            ACR_ADMIN_PASSWORD=$(az acr credential show --name $ACR_NAME --resource-group ${{ secrets.TF_VAR_resource_group_name }} --query "passwords[0].value" --output tsv)
+
+            echo "acr_name=$ACR_NAME" >> $GITHUB_OUTPUT
+            echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+            echo "acr_admin_username=$ACR_ADMIN_USERNAME" >> $GITHUB_OUTPUT
+            echo "acr_admin_password=$ACR_ADMIN_PASSWORD" >> $GITHUB_OUTPUT
+            echo "Retrieved ACR info from Azure CLI"
+          else
+            echo "Error: ACR not found"
+            exit 1
+          fi
 
   build-and-deploy:
     needs: setup-infra
