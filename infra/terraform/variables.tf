@@ -30,3 +30,9 @@ variable "app_service_exists" {
   type        = bool
   default     = false
 }
+
+variable "app_name" {
+  description = "Base name for resources"
+  type        = string
+  default     = "glucose-monitor"
+}
