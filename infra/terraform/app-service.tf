@@ -5,7 +5,7 @@ resource "azurerm_service_plan" "app_service_plan" {
   resource_group_name = data.azurerm_resource_group.existing[0].name
   location            = data.azurerm_resource_group.existing[0].location
   os_type             = "Linux"
-  sku_name            = "Y1" # Consumption plan (pay-as-you-go) and can use containers
+  sku_name            = "B1" # Basic tier - supports containers
 }
 
 # App Service for API
