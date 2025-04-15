@@ -55,7 +55,7 @@ jobs:
       - name: Check if App Service exists
         id: check-app-service
         run: |
-          APP_NAME="${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}"
+          APP_NAME="${{ secrets.TF_VAR_APP_NAME }}"
           APP_SERVICE_NAME="${APP_NAME}-api"
           RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
 

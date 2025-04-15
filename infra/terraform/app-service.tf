@@ -1,5 +1,5 @@
 resource "azurerm_service_plan" "app_service_plan" {
-  count               = var.create_infrastructure && !var.app_service_exists ? 1 : 0
+  count               = !var.app_service_exists ? 1 : 0
   name                = "${var.app_name}-plan"
   resource_group_name = azurerm_resource_group.rg[0].name
   location            = azurerm_resource_group.rg[0].location
@@ -9,7 +9,7 @@ resource "azurerm_service_plan" "app_service_plan" {
 
 # App Service for API
 resource "azurerm_linux_web_app" "api" {
-  count               = var.create_infrastructure && !var.app_service_exists ? 1 : 0
+  count               = !var.app_service_exists ? 1 : 0
   name                = "${var.app_name}-api"
   resource_group_name = azurerm_resource_group.rg[0].name
   location            = azurerm_resource_group.rg[0].location
