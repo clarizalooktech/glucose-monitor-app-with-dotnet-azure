@@ -36,3 +36,9 @@ variable "app_name" {
   type        = string
   default     = "glucose-monitor"
 }
+
+variable "app_service_plan_exists" {
+  description = "Whether the App Service Plan already exists"
+  type        = bool
+  default     = false
+}
