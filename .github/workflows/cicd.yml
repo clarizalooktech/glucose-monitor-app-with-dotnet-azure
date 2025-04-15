@@ -136,7 +136,7 @@ jobs:
           docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
 
       # Deploy the Docker image to Azure App Service
-      - name: Deploy to Azure App Service
+      - name: Deploy API to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: glucose-monitor-api
