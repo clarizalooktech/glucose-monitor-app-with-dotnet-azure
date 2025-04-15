@@ -128,7 +128,7 @@ jobs:
       # Build and push the Docker image
       - name: Build and Push API Docker Image
         run: |
-          # Build image
+          # Build the .Net backend API image
           cd src/api
           docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f Dockerfile .
 

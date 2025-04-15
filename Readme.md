@@ -108,6 +108,31 @@ Terraform automates the creation of the infrastructure.
 
 5. Follow the prompts to confirm the deployment. This will deploy the application to Azure.
 
+## Screenshots
+1. Front-end
+
+![Glucose Monitor UI](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/front-end.png)
+
+2. Back-End
+
+3. Cicd
+
+![Cicd Build and Push Image to Azure Container Registry](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/cicd-build-and-push-image.PNG)
+
+4. Terraform (local testing)
+
+![Terraform Init](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-init-successful.png)
+![Terraform Plan](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-plan-successful.png)
+
+4. Terraform (during deployment to Azure)
+
+![Terraform Apply](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/cicd-terraform-apply.PNG)
+
+5. Azure Deployed Resources
+
+![Image Pushed in the Container Registry with the Backend Api](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/After-docker-push-image-in-Acr-Container-Registry.PNG)
+
+
 ### Project Structure
 ```
 ├── .github/
@@ -182,28 +207,3 @@ Terraform automates the creation of the infrastructure.
 └── .gitignore                       # Git Ignore file
 
 ```
-## Screenshots
-1. Front-end
-
-![Glucose Monitor UI](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/front-end.png)
-
-2. Back-End
-
-3. Cicd
-
-![Cicd Build and Push Image to Azure Container Registry](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/cicd-build-and-push-image.PNG)
-
-4. Terraform (local testing)
-
-![Terraform Init](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-init-successful.png)
-![Terraform Plan](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-plan-successful.png)
-
-4. Terraform (during deployment to Azure)
-
-![Terraform Apply](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/cicd-terraform-apply.PNG)
-
-5. Azure Deployed Resources
-
-![Image Pushed in the Container Registry with the Backend Api](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/After-docker-push-image-in-Acr-Container-Registry.PNG)
-
-
