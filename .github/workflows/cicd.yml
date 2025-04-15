@@ -159,6 +159,6 @@ jobs:
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ steps.acr-info.outputs.app_service_name || format('%s-api', secrets.TF_VAR_APP_NAME) }}
+          app-name: ${{ needs.setup-infra.outputs.app_service_name || format('{0}-api', secrets.TF_VAR_APP_NAME || 'glucose-monitor') }}
           resource-group-name: ${{ secrets.TF_VAR_resource_group_name }}
           images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
