@@ -24,3 +24,9 @@ variable "create_infrastructure" {
   type        = bool
   default     = false
 }
+
+variable "app_service_exists" {
+  description = "Whether the App Service already exists"
+  type        = bool
+  default     = false
+}
