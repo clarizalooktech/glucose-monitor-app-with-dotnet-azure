@@ -56,18 +56,18 @@ jobs:
         id: check-app-service-plan
         run: |
           APP_NAME="${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}"
-          APP_SERVICE_NAME="${APP_NAME}-api"
+          APP_SERVICE_PLAN_NAME="${APP_NAME}-plan"
           RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
 
-          # Check if App Service exists
-          APP_SERVICE_EXISTS=$(az webapp show --name $APP_SERVICE_NAME --resource-group $RG_NAME --query name 2>/dev/null || echo "NotFound")
+          # Check if App Service Plan exists
+          APP_PLAN_EXISTS=$(az appservice plan show --name $APP_SERVICE_PLAN_NAME --resource-group $RG_NAME --query name 2>/dev/null || echo "NotFound")
 
-          if [ "$APP_SERVICE_EXISTS" = "NotFound" ]; then
-            echo "App Service does not exist - will create"
-            echo "app_service_exists=false" >> $GITHUB_OUTPUT
+          if [ "$APP_PLAN_EXISTS" = "NotFound" ]; then
+            echo "App Service Plan does not exist - will create"
+            echo "app_service_plan_exists=false" >> $GITHUB_OUTPUT
           else
-            echo "App Service already exists - will reuse"
-            echo "app_service_exists=true" >> $GITHUB_OUTPUT
+            echo "App Service Plan already exists - will reuse"
+            echo "app_service_plan_exists=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Terraform Apply
@@ -82,7 +82,7 @@ jobs:
           TF_VAR_app_name: ${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}
           TF_VAR_create_infrastructure: ${{ steps.check-infrastructure.outputs.create_infrastructure }}
           TF_VAR_app_service_exists: ${{ steps.check-app-service.outputs.app_service_exists || 'false' }}
-          TF_VAR_app_service_plan_exists: ${{ steps.check-app-service-plan.outputs.app_service_plan_exists }}
+          TF_VAR_app_service_plan_exists: ${{ steps.check-app-service-plan.outputs.app_service_plan_exists || 'false' }}
 
       # Get ACR info directly from Azure CLI
       - name: Get ACR Information
