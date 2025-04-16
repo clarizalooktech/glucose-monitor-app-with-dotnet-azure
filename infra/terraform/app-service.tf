@@ -2,15 +2,15 @@
 data "azurerm_service_plan" "existing" {
   count               = var.app_service_plan_exists ? 1 : 0
   name                = "${var.app_name}-plan"
-  resource_group_name = data.azurerm_resource_group.existing[0].name
+  resource_group_name = local.resource_group_name
 }
 
 # Create App Service Plan only if it doesn't exist
 resource "azurerm_service_plan" "app_service_plan" {
   count               = !var.app_service_plan_exists ? 1 : 0
   name                = "${var.app_name}-plan"
-  resource_group_name = data.azurerm_resource_group.existing[0].name
-  location            = data.azurerm_resource_group.existing[0].location
+  resource_group_name = local.resource_group_name
+  location            = local.resource_group_location
   os_type             = "Linux"
   sku_name            = "B1" # Basic tier that supports containers
 }
@@ -24,8 +24,8 @@ locals {
 resource "azurerm_linux_web_app" "api" {
   count               = !var.app_service_exists && local.app_service_plan_id != null ? 1 : 0
   name                = "${var.app_name}-api"
-  resource_group_name = data.azurerm_resource_group.existing[0].name
-  location            = data.azurerm_resource_group.existing[0].location
+  resource_group_name = local.resource_group_name
+  location            = local.resource_group_location
   service_plan_id     = local.app_service_plan_id
 
   site_config {
@@ -60,5 +60,5 @@ output "app_service_name" {
 data "azurerm_linux_web_app" "existing_api" {
   count               = var.app_service_exists ? 1 : 0
   name                = "${var.app_name}-api"
-  resource_group_name = data.azurerm_resource_group.existing[0].name
+  resource_group_name = local.resource_group_name
 }
