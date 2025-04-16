@@ -18,6 +18,16 @@ resource "azurerm_resource_group" "rg" {
 
 # Local to reference the correct resource group properties
 locals {
-  resource_group_name     = var.create_infrastructure ? (length(azurerm_resource_group.rg) > 0 ? azurerm_resource_group.rg[0].name : var.resource_group_name) : data.azurerm_resource_group.existing[0].name
-  resource_group_location = var.create_infrastructure ? (length(azurerm_resource_group.rg) > 0 ? azurerm_resource_group.rg[0].location : var.location) : data.azurerm_resource_group.existing[0].location
+  # Use simple conditionals that are easier to parse
+  resource_group_name = var.create_infrastructure ? (
+    length(azurerm_resource_group.rg) > 0 ? azurerm_resource_group.rg[0].name : var.resource_group_name
+  ) : (
+    length(data.azurerm_resource_group.existing) > 0 ? data.azurerm_resource_group.existing[0].name : var.resource_group_name
+  )
+
+  resource_group_location = var.create_infrastructure ? (
+    length(azurerm_resource_group.rg) > 0 ? azurerm_resource_group.rg[0].location : var.location
+  ) : (
+    length(data.azurerm_resource_group.existing) > 0 ? data.azurerm_resource_group.existing[0].location : var.location
+  )
 }
