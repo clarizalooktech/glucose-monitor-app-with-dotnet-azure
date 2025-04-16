@@ -69,6 +69,7 @@ data "azurerm_linux_web_app" "existing_api" {
 }
 
 resource "azurerm_role_assignment" "acr_pull" {
+  count                = length(data.azurerm_container_registry.existing) > 0 ? 1 : 0
   scope                = data.azurerm_container_registry.existing[0].id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_linux_web_app.api[0].identity[0].principal_id
