@@ -134,10 +134,10 @@ Image Pushed in the Container Registry with the Backend Api
 ![Image Pushed in the Container Registry with the Backend Api](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/After-docker-push-image-in-Acr-Container-Registry.PNG)
 
 How Resource Group looks like in Azure Console
-![How Resource Group looks like in Azure Console](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/Creation-of-resources-in-resource-group.JPG)
+![How Resource Group looks like in Azure Console](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/Creation-of-resources-in-resourcegroup.jpg)
 
 Checking Error Logs on the App Service Api
-![Checking Error Logs on the App Service Api](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/Checking-error-logs-app-service-api.jpg)
+![Checking Error Logs on the App Service Api](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/Checking-error-log-app-service-api.jpg)
 
 ### Project Structure
 ```
