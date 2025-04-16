@@ -22,11 +22,16 @@ locals {
 
 # App Service for API
 resource "azurerm_linux_web_app" "api" {
-  count               = !var.app_service_exists && local.app_service_plan_id != null ? 1 : 0
+  count               = !var.app_service_exists ? 1 : 0  # Simplify the count condition
   name                = "${var.app_name}-api"
   resource_group_name = local.resource_group_name
   location            = local.resource_group_location
   service_plan_id     = local.app_service_plan_id
+
+  # Add a depends_on to ensure the app service plan exists before creating the web app
+  depends_on = [
+    azurerm_service_plan.app_service_plan
+  ]
 
   site_config {
     application_stack {
