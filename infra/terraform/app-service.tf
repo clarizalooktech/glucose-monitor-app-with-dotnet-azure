@@ -33,15 +33,15 @@ resource "azurerm_linux_web_app" "api" {
     azurerm_service_plan.app_service_plan
   ]
 
-  site_config {
-    application_stack {
-      docker_image_name        = "${local.acr_login_server}/glucose-monitor-api:latest"
-      docker_registry_url      = "https://${local.acr_login_server}"
-      docker_registry_username = local.acr_admin_username
-      docker_registry_password = local.acr_admin_password
-    }
+site_config {
+  application_stack {
+    # Remove the duplication in the image name
+    docker_image_name        = "glucose-monitor-api:latest"
+    docker_registry_url      = "https://${local.acr_login_server}"
+    docker_registry_username = local.acr_admin_username
+    docker_registry_password = local.acr_admin_password
   }
-
+}
   app_settings = {
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
   }
@@ -66,4 +66,11 @@ data "azurerm_linux_web_app" "existing_api" {
   count               = var.app_service_exists ? 1 : 0
   name                = "${var.app_name}-api"
   resource_group_name = local.resource_group_name
+}
+
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = data.azurerm_container_registry.existing[0].id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_linux_web_app.api[0].identity[0].principal_id
+  depends_on           = [azurerm_linux_web_app.api]
 }
