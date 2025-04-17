@@ -111,13 +111,9 @@ jobs:
           SUBSCRIPTION_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
           echo "Importing existing App Service into Terraform state..."
-          terraform import "azurerm_linux_web_app.api[0]" "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_NAME}/providers/Microsoft.Web/sites/${APP_SERVICE_NAME}"
-
-          if [ $? -eq 0 ]; then
-            echo "Successfully imported App Service"
-          else
-            echo "Failed to import App Service, will try to continue with apply"
-          fi
+          # Enable Terraform debug logs
+          export TF_LOG=DEBUG
+          terraform import "azurerm_linux_web_app.api[0]" "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_NAME}/providers/Microsoft.Web/sites/${APP_SERVICE_NAME}" || echo "Import failed, continuing anyway"
 
       - name: Terraform Apply
         run: |
