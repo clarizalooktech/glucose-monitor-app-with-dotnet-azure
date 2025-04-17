@@ -88,6 +88,18 @@ jobs:
             echo "app_service_exists=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check if import is needed
+        id: check-import
+        run: |
+          # Check if this is a repeat run on the same branch
+          if [[ "${{ github.run_number }}" -gt 1 ]]; then
+            echo "This is a repeat run, skipping import"
+            echo "skip_import=true" >> $GITHUB_OUTPUT
+          else
+            echo "First run, will attempt import"
+            echo "skip_import=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Import App Service if it exists
         if: steps.check-app-service.outputs.app_service_exists == 'true'
         run: |
