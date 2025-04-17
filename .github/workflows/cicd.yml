@@ -204,15 +204,37 @@ jobs:
 
       - name: Build and Push API Docker Image
         run: |
-          # First, find the Dockerfile
+          # Debug directory structure
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+
+          echo "Subdirectory contents:"
+          ls -la src/ || echo "No src directory"
+          ls -la src/api/ || echo "No src/api directory"
+
+          # Find the Dockerfile
           echo "Locating Dockerfile"
           find . -name "Dockerfile" -type f | sort
 
-          # Build the image with only the SHA tag
-          docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f Dockerfile .
+          # Check if the Dockerfile exists at the found path
+          DOCKERFILE_PATH="./src/api/Dockerfile"
+          if [ -f "$DOCKERFILE_PATH" ]; then
+            echo "Found Dockerfile at: $DOCKERFILE_PATH"
 
-          # Push only the SHA-tagged image
-          docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+            # Get the directory containing the Dockerfile
+            DOCKER_CONTEXT=$(dirname "$DOCKERFILE_PATH")
+            echo "Using Docker context: $DOCKER_CONTEXT"
+
+            # Build the image with only the SHA tag
+            docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f $DOCKERFILE_PATH $DOCKER_CONTEXT
+
+            # Push only the SHA-tagged image
+            docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+          else
+            echo "ERROR: Dockerfile not found at expected path: $DOCKERFILE_PATH"
+            exit 1
+          fi
 
       # Deploy the Docker image to Azure App Service
       - name: Deploy to Azure App Service
