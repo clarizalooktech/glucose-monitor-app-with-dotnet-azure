@@ -88,16 +88,24 @@ jobs:
             echo "app_service_exists=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Import App Service (if it exists)
+      - name: Import App Service if it exists
         if: steps.check-app-service.outputs.app_service_exists == 'true'
         run: |
           cd infra/terraform
+
           APP_NAME="${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}"
           APP_SERVICE_NAME="${APP_NAME}-api"
           RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
-          SUB_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          SUBSCRIPTION_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
-          terraform import "azurerm_linux_web_app.api[0]" "/subscriptions/$SUB_ID/resourceGroups/$RG_NAME/providers/Microsoft.Web/sites/$APP_SERVICE_NAME"
+          echo "Importing existing App Service into Terraform state..."
+          terraform import "azurerm_linux_web_app.api[0]" "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_NAME}/providers/Microsoft.Web/sites/${APP_SERVICE_NAME}"
+
+          if [ $? -eq 0 ]; then
+            echo "Successfully imported App Service"
+          else
+            echo "Failed to import App Service, will try to continue with apply"
+          fi
 
       - name: Terraform Apply
         run: |
