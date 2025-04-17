@@ -58,12 +58,12 @@ resource "azurerm_linux_web_app" "api" {
     type = "SystemAssigned"
   }
   
-  # Add lifecycle ignore_changes for imported resources
+  # Add lifecycle ignore_changes - cannot use conditional
   lifecycle {
-    ignore_changes = var.app_service_exists == "true" ? [
+    ignore_changes = [
       site_config,
       app_settings,
-    ] : []
+    ]
   }
 }
 
