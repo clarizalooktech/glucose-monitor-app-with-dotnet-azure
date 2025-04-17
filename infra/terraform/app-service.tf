@@ -100,33 +100,47 @@ resource "azurerm_linux_web_app" "api" {
   }
 }
 
+# Use locals for simplified conditional logic
+locals {
+  # For existing app service
+  imported_url = var.app_service_exists == "true" && length(azurerm_linux_web_app.existing_imported) > 0 ? "https://${azurerm_linux_web_app.existing_imported[0].default_hostname}" : "No imported App Service URL available"
+  
+  # For new app service
+  new_url = var.app_service_exists != "true" && length(azurerm_linux_web_app.api) > 0 ? "https://${azurerm_linux_web_app.api[0].default_hostname}" : "No new App Service URL available"
+  
+  # Final URL to output
+  final_url = var.app_service_exists == "true" ? local.imported_url : local.new_url
+  
+  # App service name logic
+  imported_name = var.app_service_exists == "true" && length(azurerm_linux_web_app.existing_imported) > 0 ? azurerm_linux_web_app.existing_imported[0].name : "${var.app_name}-api"
+  new_name = var.app_service_exists != "true" && length(azurerm_linux_web_app.api) > 0 ? azurerm_linux_web_app.api[0].name : "No App Service"
+  final_name = var.app_service_exists == "true" ? local.imported_name : local.new_name
+  
+  # Role assignment logic
+  has_acr = length(data.azurerm_container_registry.existing) > 0
+  has_imported_app = var.app_service_exists == "true" && length(azurerm_linux_web_app.existing_imported) > 0
+  has_new_app = var.app_service_exists != "true" && length(azurerm_linux_web_app.api) > 0
+  create_role_assignment = local.has_acr && (local.has_imported_app || local.has_new_app)
+  
+  # Principal ID to use
+  principal_id = var.app_service_exists == "true" ? (length(azurerm_linux_web_app.existing_imported) > 0 ? azurerm_linux_web_app.existing_imported[0].identity[0].principal_id : "") : (length(azurerm_linux_web_app.api) > 0 ? azurerm_linux_web_app.api[0].identity[0].principal_id : "")
+}
+
 # Output the App Service URL
 output "api_url" {
-  value = var.app_service_exists == "true" ?
-    (length(azurerm_linux_web_app.existing_imported) > 0 ? "https://${azurerm_linux_web_app.existing_imported[0].default_hostname}" : "No imported App Service URL available") : 
-    (length(azurerm_linux_web_app.api) > 0 ? "https://${azurerm_linux_web_app.api[0].default_hostname}" : "No new App Service URL available")
+  value = local.final_url
 }
 
 # Output the App Service name
 output "app_service_name" {
-  value = var.app_service_exists == "true" ?
-    (length(azurerm_linux_web_app.existing_imported) > 0 ? azurerm_linux_web_app.existing_imported[0].name : "${var.app_name}-api") : 
-    (length(azurerm_linux_web_app.api) > 0 ? azurerm_linux_web_app.api[0].name : "No App Service")
+  value = local.final_name
 }
 
 # Update role assignment to work with both resource types
 resource "azurerm_role_assignment" "acr_pull" {
-  count = length(data.azurerm_container_registry.existing) > 0 ?
-    (var.app_service_exists == "true" ?
-      (length(azurerm_linux_web_app.existing_imported) > 0 ? 1 : 0) :
-      (length(azurerm_linux_web_app.api) > 0 ? 1 : 0)
-    ) : 0
-
+  count                = local.create_role_assignment ? 1 : 0
   scope                = data.azurerm_container_registry.existing[0].id
   role_definition_name = "AcrPull"
-  principal_id         = var.app_service_exists == "true" ? 
-    azurerm_linux_web_app.existing_imported[0].identity[0].principal_id : 
-    azurerm_linux_web_app.api[0].identity[0].principal_id
-
-  depends_on = [azurerm_linux_web_app.api, azurerm_linux_web_app.existing_imported]
+  principal_id         = local.principal_id
+  depends_on           = [azurerm_linux_web_app.api, azurerm_linux_web_app.existing_imported]
 }
