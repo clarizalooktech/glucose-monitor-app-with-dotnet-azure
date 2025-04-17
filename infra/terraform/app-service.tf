@@ -75,8 +75,15 @@ output "app_service_name" {
   value = azurerm_linux_web_app.api[0].name
 }
 
-# Consolidated role assignment that works for both new and existing ACR
+variable "skip_role_assignment" {
+  description = "Skip role assignment due to permission issues"
+  type        = bool
+  default     = false
+}
+
+# Update the role assignment resource
 resource "azurerm_role_assignment" "acr_pull" {
+  count                = var.skip_role_assignment ? 0 : 1
   scope                = var.create_infrastructure ? azurerm_container_registry.acr[0].id : data.azurerm_container_registry.existing[0].id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_linux_web_app.api[0].identity[0].principal_id
