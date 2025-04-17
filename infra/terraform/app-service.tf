@@ -76,12 +76,11 @@ output "app_service_name" {
 }
 
 variable "skip_role_assignment" {
-  description = "Skip role assignment due to permission issues"
+  description = "Skip role assignment during initial deployment"
   type        = bool
-  default     = false
+  default     = true  # Default to skipping
 }
 
-# Update the role assignment resource
 resource "azurerm_role_assignment" "acr_pull" {
   count                = var.skip_role_assignment ? 0 : 1
   scope                = var.create_infrastructure ? azurerm_container_registry.acr[0].id : data.azurerm_container_registry.existing[0].id
