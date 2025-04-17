@@ -226,11 +226,11 @@ jobs:
             DOCKER_CONTEXT=$(dirname "$DOCKERFILE_PATH")
             echo "Using Docker context: $DOCKER_CONTEXT"
 
-            # Build the image with only the SHA tag
-            docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f $DOCKERFILE_PATH $DOCKER_CONTEXT
+            # Build the image
+            docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest -f $DOCKERFILE_PATH $DOCKER_CONTEXT
 
             # Push only the SHA-tagged image
-            docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+            docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
           else
             echo "ERROR: Dockerfile not found at expected path: $DOCKERFILE_PATH"
             exit 1
@@ -242,4 +242,4 @@ jobs:
         with:
           app-name: ${{ needs.setup-infra.outputs.app_service_name || format('{0}-api', secrets.TF_VAR_APP_NAME || 'glucose-monitor') }}
           resource-group-name: ${{ secrets.TF_VAR_resource_group_name }}
-          images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+          images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest

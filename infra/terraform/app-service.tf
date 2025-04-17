@@ -40,15 +40,15 @@ resource "azurerm_linux_web_app" "api" {
     azurerm_service_plan.app_service_plan
   ]
 
-  site_config {
-    application_stack {
-      # Use ACR credentials from locals
-      docker_image_name = "glucose-monitor-api:${github.sha}"
-      docker_registry_url      = "https://${local.acr_login_server}"
-      docker_registry_username = local.acr_admin_username
-      docker_registry_password = local.acr_admin_password
-    }
+ site_config {
+  application_stack {
+    # Change this line
+    docker_image_name = "glucose-monitor-api:latest"  # Use latest for now
+    docker_registry_url      = "https://${local.acr_login_server}"
+    docker_registry_username = local.acr_admin_username
+    docker_registry_password = local.acr_admin_password
   }
+}
 
 app_settings = {
   "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
