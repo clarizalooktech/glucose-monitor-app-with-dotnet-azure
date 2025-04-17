@@ -29,39 +29,34 @@ data "azurerm_linux_web_app" "existing_api" {
 
 # App Service for API - Single resource now (used for both new and existing)
 resource "azurerm_linux_web_app" "api" {
-  count               = 1  # Always create this resource (we'll import into it later)
+  count               = 1
   name                = "${var.app_name}-api"
   resource_group_name = local.resource_group_name
   location            = local.resource_group_location
   service_plan_id     = local.app_service_plan_id
 
-  # Add a depends_on to ensure the app service plan exists before creating the web app
   depends_on = [
     azurerm_service_plan.app_service_plan
   ]
 
- site_config {
-  application_stack {
-    # Change this line
-    docker_image_name = "glucose-monitor-api:latest"  # Use latest for now
-    docker_registry_url      = "https://${local.acr_login_server}"
-    docker_registry_username = local.acr_admin_username
-    docker_registry_password = local.acr_admin_password
+  site_config {
+    application_stack {
+      docker_image_name        = "glucose-monitor-api:latest"
+      docker_registry_url      = "https://${local.acr_login_server}"
+      docker_registry_username = local.acr_admin_username
+      docker_registry_password = local.acr_admin_password
+    }
   }
-}
 
-app_settings = {
-  "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  "DOCKER_REGISTRY_SERVER_URL"          = "https://${local.acr_login_server}"
-  "DOCKER_REGISTRY_SERVER_USERNAME"     = local.acr_admin_username
-  "DOCKER_REGISTRY_SERVER_PASSWORD"     = local.acr_admin_password
-}
+  app_settings = {
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+    # Remove the Docker registry settings from here
+  }
 
   identity {
     type = "SystemAssigned"
   }
 
-  # Add lifecycle ignore_changes - cannot use conditional
   lifecycle {
     ignore_changes = [
       site_config,
