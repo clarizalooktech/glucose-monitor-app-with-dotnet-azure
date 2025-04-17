@@ -103,22 +103,30 @@ resource "azurerm_linux_web_app" "api" {
 # Output the App Service URL
 output "api_url" {
   value = var.app_service_exists == "true" ? 
-    (length(azurerm_linux_web_app.existing_imported) > 0 ? "https://${azurerm_linux_web_app.existing_imported[0].default_hostname}" : "No imported App Service URL available") :
+    (length(azurerm_linux_web_app.existing_imported) > 0 ? "https://${azurerm_linux_web_app.existing_imported[0].default_hostname}" : "No imported App Service URL available") : 
     (length(azurerm_linux_web_app.api) > 0 ? "https://${azurerm_linux_web_app.api[0].default_hostname}" : "No new App Service URL available")
 }
 
 # Output the App Service name
 output "app_service_name" {
   value = var.app_service_exists == "true" ? 
-    (length(azurerm_linux_web_app.existing_imported) > 0 ? azurerm_linux_web_app.existing_imported[0].name : "${var.app_name}-api") :
+    (length(azurerm_linux_web_app.existing_imported) > 0 ? azurerm_linux_web_app.existing_imported[0].name : "${var.app_name}-api") : 
     (length(azurerm_linux_web_app.api) > 0 ? azurerm_linux_web_app.api[0].name : "No App Service")
 }
 
 # Update role assignment to work with both resource types
 resource "azurerm_role_assignment" "acr_pull" {
-  count                = length(data.azurerm_container_registry.existing) > 0 ? (var.app_service_exists == "true" ? (length(azurerm_linux_web_app.existing_imported) > 0 ? 1 : 0) : (length(azurerm_linux_web_app.api) > 0 ? 1 : 0)) : 0
+  count = length(data.azurerm_container_registry.existing) > 0 ? 
+    (var.app_service_exists == "true" ? 
+      (length(azurerm_linux_web_app.existing_imported) > 0 ? 1 : 0) : 
+      (length(azurerm_linux_web_app.api) > 0 ? 1 : 0)
+    ) : 0
+  
   scope                = data.azurerm_container_registry.existing[0].id
   role_definition_name = "AcrPull"
-  principal_id         = var.app_service_exists == "true" ? azurerm_linux_web_app.existing_imported[0].identity[0].principal_id : azurerm_linux_web_app.api[0].identity[0].principal_id
-  depends_on           = [azurerm_linux_web_app.api, azurerm_linux_web_app.existing_imported]
+  principal_id         = var.app_service_exists == "true" ? 
+    azurerm_linux_web_app.existing_imported[0].identity[0].principal_id : 
+    azurerm_linux_web_app.api[0].identity[0].principal_id
+  
+  depends_on = [azurerm_linux_web_app.api, azurerm_linux_web_app.existing_imported]
 }
