@@ -185,15 +185,15 @@ jobs:
 
       - name: Build and Push API Docker Image
         run: |
-          # Build the image with correct naming
+          # First, find the Dockerfile
+          echo "Locating Dockerfile"
+          find . -name "Dockerfile" -type f | sort
+
+          # Build the image with only the SHA tag
           docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f Dockerfile .
 
-          # Also tag as latest
-          docker tag ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
-
-          # Push both tags
+          # Push only the SHA-tagged image
           docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
-          docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
 
       # Deploy the Docker image to Azure App Service
       - name: Deploy to Azure App Service
