@@ -70,6 +70,62 @@ jobs:
             echo "app_service_plan_exists=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check if App Service exists
+        id: check-app-service
+        run: |
+          APP_NAME="${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}"
+          APP_SERVICE_NAME="${APP_NAME}-api"
+          RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
+
+          # Check if App Service exists
+          APP_EXISTS=$(az webapp show --name $APP_SERVICE_NAME --resource-group $RG_NAME --query name 2>/dev/null || echo "NotFound")
+
+          if [ "$APP_EXISTS" = "NotFound" ]; then
+            echo "App Service does not exist - will create"
+            echo "app_service_exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "App Service already exists - will import"
+            echo "app_service_exists=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if import is needed
+        id: check-import
+        run: |
+          # Check if this is a repeat run on the same branch
+          if [[ "${{ github.run_number }}" -gt 1 ]]; then
+            echo "This is a repeat run, skipping import"
+            echo "skip_import=true" >> $GITHUB_OUTPUT
+          else
+            echo "First run, will attempt import"
+            echo "skip_import=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Import App Service if it exists
+        if: steps.check-app-service.outputs.app_service_exists == 'true' && steps.check-import.outputs.skip_import != 'true'
+        run: |
+          cd infra/terraform
+
+          APP_NAME="${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}"
+          APP_SERVICE_NAME="${APP_NAME}-api"
+          RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
+          SUBSCRIPTION_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
+          LOCATION="${{ secrets.TF_VAR_location }}"
+
+          echo "Importing existing App Service into Terraform state..."
+          # Add environment variables for the required variables
+          export TF_VAR_subscription_id="$SUBSCRIPTION_ID"
+          export TF_VAR_resource_group_name="$RG_NAME"
+          export TF_VAR_acr_name="$ACR_NAME"
+          export TF_VAR_location="$LOCATION"
+          export TF_VAR_app_name="$APP_NAME"
+          export TF_VAR_app_service_exists="true"
+          export TF_VAR_app_service_plan_exists="${{ steps.check-app-service-plan.outputs.app_service_plan_exists || 'false' }}"
+          export TF_VAR_create_infrastructure="${{ steps.check-infrastructure.outputs.create_infrastructure }}"
+
+          # Add a timeout of 2 minutes to the import operation
+          timeout 120 terraform import "azurerm_linux_web_app.api[0]" "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_NAME}/providers/Microsoft.Web/sites/${APP_SERVICE_NAME}" || echo "Import failed or timed out, continuing anyway"
+
       - name: Terraform Apply
         run: |
           cd infra/terraform
@@ -138,25 +194,58 @@ jobs:
           echo "acr_login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
 
       # Directly login to ACR using Azure CLI
-      - name: Log in to ACR using Azure CLI
-        run: |
-          ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
+      - name: Assign AcrPull role
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            # Define App Service name using TF_VAR_APP_NAME or fallback
+            APP_NAME="${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}"
+            APP_SERVICE_NAME="${APP_NAME}-api"
+            RESOURCE_GROUP="${{ secrets.TF_VAR_resource_group_name }}"
+            ACR_NAME="${{ secrets.TF_VAR_acr_name }}"
 
-          # Login to ACR using Azure CLI
-          echo "Logging in to ACR using Azure CLI..."
-          az acr login --name $ACR_NAME
+            # Get principal ID
+            PRINCIPAL_ID=$(az webapp identity show --name "$APP_SERVICE_NAME" --resource-group "$RESOURCE_GROUP" --query principalId -o tsv)
+
+            # Assign role
+            az role assignment create \
+              --assignee "$PRINCIPAL_ID" \
+              --role "AcrPull" \
+              --scope "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerRegistry/registries/$ACR_NAME"
 
       - name: Build and Push API Docker Image
         run: |
-          # Build the image with correct naming
-          docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} -f Dockerfile .
+          # Debug directory structure
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
 
-          # Also tag as latest
-          docker tag ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }} ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
+          echo "Subdirectory contents:"
+          ls -la src/ || echo "No src directory"
+          ls -la src/api/ || echo "No src/api directory"
 
-          # Push both tags
-          docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
-          docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
+          # Find the Dockerfile
+          echo "Locating Dockerfile"
+          find . -name "Dockerfile" -type f | sort
+
+          # Check if the Dockerfile exists at the found path
+          DOCKERFILE_PATH="./src/api/Dockerfile"
+          if [ -f "$DOCKERFILE_PATH" ]; then
+            echo "Found Dockerfile at: $DOCKERFILE_PATH"
+
+            # Get the directory containing the Dockerfile
+            DOCKER_CONTEXT=$(dirname "$DOCKERFILE_PATH")
+            echo "Using Docker context: $DOCKER_CONTEXT"
+
+            # Build the image
+            docker build -t ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest -f $DOCKERFILE_PATH $DOCKER_CONTEXT
+
+            # Push only the SHA-tagged image
+            docker push ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
+          else
+            echo "ERROR: Dockerfile not found at expected path: $DOCKERFILE_PATH"
+            exit 1
+          fi
 
       # Deploy the Docker image to Azure App Service
       - name: Deploy to Azure App Service
@@ -164,4 +253,4 @@ jobs:
         with:
           app-name: ${{ needs.setup-infra.outputs.app_service_name || format('{0}-api', secrets.TF_VAR_APP_NAME || 'glucose-monitor') }}
           resource-group-name: ${{ secrets.TF_VAR_resource_group_name }}
-          images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:${{ github.sha }}
+          images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
