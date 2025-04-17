@@ -43,21 +43,24 @@ resource "azurerm_linux_web_app" "api" {
   site_config {
     application_stack {
       # Use ACR credentials from locals
-      docker_image_name        = "glucose-monitor-api:latest"
+      docker_image_name = "glucose-monitor-api:${github.sha}"
       docker_registry_url      = "https://${local.acr_login_server}"
       docker_registry_username = local.acr_admin_username
       docker_registry_password = local.acr_admin_password
     }
   }
-  
-  app_settings = {
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
+
+app_settings = {
+  "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+  "DOCKER_REGISTRY_SERVER_URL"          = "https://${local.acr_login_server}"
+  "DOCKER_REGISTRY_SERVER_USERNAME"     = local.acr_admin_username
+  "DOCKER_REGISTRY_SERVER_PASSWORD"     = local.acr_admin_password
+}
 
   identity {
     type = "SystemAssigned"
   }
-  
+
   # Add lifecycle ignore_changes - cannot use conditional
   lifecycle {
     ignore_changes = [
@@ -77,10 +80,9 @@ output "app_service_name" {
   value = azurerm_linux_web_app.api[0].name
 }
 
-# Update role assignment
+# Consolidated role assignment that works for both new and existing ACR
 resource "azurerm_role_assignment" "acr_pull" {
-  count                = length(data.azurerm_container_registry.existing) > 0 ? 1 : 0
-  scope                = data.azurerm_container_registry.existing[0].id
+  scope                = var.create_infrastructure ? azurerm_container_registry.acr[0].id : data.azurerm_container_registry.existing[0].id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_linux_web_app.api[0].identity[0].principal_id
   depends_on           = [azurerm_linux_web_app.api]
