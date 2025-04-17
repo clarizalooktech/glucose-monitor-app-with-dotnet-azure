@@ -70,6 +70,35 @@ jobs:
             echo "app_service_plan_exists=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check if App Service exists
+        id: check-app-service
+        run: |
+          APP_NAME="${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}"
+          APP_SERVICE_NAME="${APP_NAME}-api"
+          RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
+
+          # Check if App Service exists
+          APP_EXISTS=$(az webapp show --name $APP_SERVICE_NAME --resource-group $RG_NAME --query name 2>/dev/null || echo "NotFound")
+
+          if [ "$APP_EXISTS" = "NotFound" ]; then
+            echo "App Service does not exist - will create"
+            echo "app_service_exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "App Service already exists - will import"
+            echo "app_service_exists=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Import App Service (if it exists)
+        if: steps.check-app-service.outputs.app_service_exists == 'true'
+        run: |
+          cd infra/terraform
+          APP_NAME="${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}"
+          APP_SERVICE_NAME="${APP_NAME}-api"
+          RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
+          SUB_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+          terraform import "azurerm_linux_web_app.api[0]" "/subscriptions/$SUB_ID/resourceGroups/$RG_NAME/providers/Microsoft.Web/sites/$APP_SERVICE_NAME"
+
       - name: Terraform Apply
         run: |
           cd infra/terraform

@@ -25,20 +25,21 @@ variable "create_infrastructure" {
   default     = false
 }
 
-variable "app_service_exists" {
-  description = "Whether the App Service already exists"
-  type        = bool
-  default     = false
-}
-
 variable "app_name" {
   description = "Base name for resources"
   type        = string
   default     = "glucose-monitor"
 }
 
+variable "app_service_exists" {
+  description = "Whether the App Service already exists"
+  type        = string
+  default     = "false"
+}
+
 variable "app_service_plan_exists" {
   description = "Whether the App Service Plan already exists"
-  type        = bool
-  default     = false
+  type        = string
+  default     = "false"
 }
+
