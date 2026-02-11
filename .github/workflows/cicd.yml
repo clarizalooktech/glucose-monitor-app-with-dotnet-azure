@@ -140,6 +140,17 @@ jobs:
           TF_VAR_app_service_exists: ${{ steps.check-app-service.outputs.app_service_exists || 'false' }}
           TF_VAR_app_service_plan_exists: ${{ steps.check-app-service-plan.outputs.app_service_plan_exists || 'false' }}
 
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ secrets.TF_VAR_ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd infra/terraform
+          ACR_LOGIN_SERVER=$(terraform output -raw acr_login_server)
+          cd ../..
+          docker build -t ${ACR_LOGIN_SERVER}/${{ secrets.TF_VAR_APP_NAME }}-api:latest ./src/api
+          docker push ${ACR_LOGIN_SERVER}/${{ secrets.TF_VAR_APP_NAME }}-api:latest
       # Get ACR info directly from Azure CLI
       - name: Get ACR Information
         id: get-acr-info
