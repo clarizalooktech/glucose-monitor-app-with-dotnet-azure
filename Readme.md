@@ -52,6 +52,14 @@ Terraform automates the creation of the infrastructure.
 - Terraform
 - Azure account
 
+### To deploy in Azure
+- Make change in the repo
+- Push it
+- It should trigger the cicd pipeline
+- check Github Actions section
+----------
+## Local Development
+
 ### Setting Up the Frontend
 
 1. Navigate to the `src/ui` directory:
