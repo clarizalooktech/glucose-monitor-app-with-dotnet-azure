@@ -29,6 +29,9 @@ Azure Container Registry(ACR) is used to store the docker images.
 The CI/CD pipelines automate the build, test, and deployment processes, reducing manual effort and potential errors.
 Terraform automates the creation of the infrastructure.
 
+
+![DevOps Workflow Diagram](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/workflow-diagram.jpg)
+
 ### Key Technologies:
 
 - React: Frontend framework.
@@ -89,7 +92,7 @@ Terraform automates the creation of the infrastructure.
 ### Deploying to Azure with Terraform
 1. Navigate to the Terraform configuration directory:
    ```
-   cd terraform
+   cd infra/terraform
    ```
 2. Initialize Terraform:
    ```

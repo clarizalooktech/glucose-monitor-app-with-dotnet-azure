@@ -21,3 +21,12 @@ terraform.rc
 # IDE files
 .idea/
 *.vscode/
+
+
+# Terraform sensitive files
+terraform.tfvars
+*.tfvars
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
