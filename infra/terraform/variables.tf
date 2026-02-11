@@ -33,13 +33,18 @@ variable "app_name" {
 
 variable "app_service_exists" {
   description = "Whether the App Service already exists"
-  type        = string
-  default     = "false"
+  type        = bool
+  default     = false
 }
 
 variable "app_service_plan_exists" {
   description = "Whether the App Service Plan already exists"
-  type        = string
-  default     = "false"
+  type        = bool
+  default     = false
 }
 
+variable "skip_role_assignment" {
+  description = "Skip role assignment during initial deployment"
+  type        = bool
+  default     = false
+}
