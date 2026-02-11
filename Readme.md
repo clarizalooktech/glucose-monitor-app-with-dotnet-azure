@@ -57,7 +57,7 @@ Terraform automates the creation of the infrastructure.
 - Push it
 - It should trigger the cicd pipeline
 - check Github Actions section
-----------
+
 ## Local Development
 
 ### Setting Up the Frontend
