@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
+// Use environment variable for API URL, fallback to empty string for local proxy
+const API_URL = process.env.REACT_APP_API_URL || '';
+
 function App() {
     const [glucoseLevel, setGlucoseLevel] = useState('');
     const [measurementType, setMeasurementType] = useState('Fasting'); // Default to fasting
@@ -9,7 +12,7 @@ function App() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('/api/glucose', {
+            await axios.post(`${API_URL}/api/glucose`, {
                 level: parseInt(glucoseLevel),
                 measurementType: measurementType,
                 timestamp: new Date().toISOString()

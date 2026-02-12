@@ -1,18 +1,24 @@
 
 # Glucose Monitor App
 
-This project is a Glucose Monitor App with a frontend built using React and a backend built using .NET. The application will be deployed using Terraform in Azure.
+A full-stack cloud-native application for tracking and managing blood glucose levels, deployed on Azure with complete CI/CD automation.
 
-### Project Overview
-- **Functionality**: A Glucose Monitor App designed to track and manage blood glucose levels.
-- **Frontend**: Built using React, providing a user-friendly interface.
-- **Backend**: Developed with .NET, handling data processing, storage, and API interactions.
-- **Infrastructure**: Deployed on Azure using Terraform, enabling Infrastructure as Code (IaC).
-- **Containerization**: The .NET backend is containerized using Docker and pushed to Azure Container Registry (ACR).
+## 🌐 Live Demo
+
+- **Frontend:** https://glucosemonitoruistorage.z31.web.core.windows.net/
+- **Backend API:** https://glucose-monitor-api.azurewebsites.net/api/glucose
+
+## 📋 Project Overview
+
+- **Functionality**: Track and monitor blood glucose levels with fasting and postprandial measurements
+- **Frontend**: React application with responsive UI
+- **Backend**: .NET 8.0 Web API with RESTful endpoints
+- **Infrastructure**: Fully automated deployment on Azure using Terraform (Infrastructure as Code)
+- **Containerization**: Docker containers stored in Azure Container Registry (ACR)
 - **Deployment**:
-  - The .NET API is deployed to Azure App Service.
-  - The React UI is deployed to Azure Static Web Apps.
-- **DevOps Focus**: Emphasizes automation, CI/CD, and infrastructure management.
+  - .NET API deployed to Azure App Service (Linux)
+  - React UI deployed to Azure Storage Static Website
+- **CI/CD**: Complete GitHub Actions workflow with automated testing and deployment
 
 ### DevOps Principles Demonstrated:
 1. **Infrastructure as Code (IaC)**:
@@ -29,18 +35,21 @@ Azure Container Registry(ACR) is used to store the docker images.
 The CI/CD pipelines automate the build, test, and deployment processes, reducing manual effort and potential errors.
 Terraform automates the creation of the infrastructure.
 
-### Key Technologies:
 
-- React: Frontend framework.
-- .NET: Backend framework.
-- Docker: Containerization platform.
-- Azure Container Registry (ACR): Container image registry.
-- Azure App Service: Platform for hosting web applications and APIs.
-- Azure Static Web Apps: Platform for hosting static web applications.
-- Terraform: Infrastructure as Code tool.
-- Git: Version control system.
-- Azure DevOps/GitHub Actions: CI/CD platforms.
+![DevOps Workflow Diagram](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/workflow-diagram.jpg)
 
+## 🛠️ Key Technologies
+
+| Category | Technology |
+|----------|-----------|
+| Frontend | React 19, Axios, CSS |
+| Backend | .NET 8.0, ASP.NET Core Web API |
+| Containerization | Docker, Azure Container Registry |
+| Infrastructure | Terraform, Azure Resource Manager |
+| CI/CD | GitHub Actions, Azure CLI |
+| Cloud Platform | Microsoft Azure |
+| Authentication | Azure OIDC with Federated Credentials |
+| Hosting | Azure App Service, Azure Storage Static Website |
 
 ## Prerequisites
 
@@ -48,6 +57,67 @@ Terraform automates the creation of the infrastructure.
 - .NET SDK
 - Terraform
 - Azure account
+
+## 🚀 Deployment to Azure
+
+### Important Note for Azure for Students
+Due to Azure for Students subscription limitations, some resources must be created manually via Azure CLI before running Terraform.
+
+### Step 1: Create Resource Group
+```bash
+az group create \
+  --name glucose-monitor-rg \
+  --location japanwest
+```
+
+### Step 2: Create App Service Plan
+```bash
+az appservice plan create \
+  --name glucose-monitor-plan \
+  --resource-group glucose-monitor-rg \
+  --location japanwest \
+  --is-linux \
+  --sku B1
+```
+
+### Step 3: Verify Resources
+```bash
+az resource list --resource-group glucose-monitor-rg -o table
+```
+
+### Step 4: Configure GitHub Secrets
+
+Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
+
+- `AZURE_CLIENT_ID`: Service principal client ID
+- `AZURE_TENANT_ID`: Azure AD tenant ID
+- `AZURE_SUBSCRIPTION_ID`: Azure subscription ID
+- `TF_VAR_RESOURCE_GROUP_NAME`: glucose-monitor-rg
+- `TF_VAR_ACR_NAME`: Your ACR name
+- `TF_VAR_LOCATION`: japanwest
+- `TF_VAR_APP_NAME`: glucose-monitor
+- `TF_VAR_acr_name`: Your ACR name (lowercase)
+- `TF_VAR_resource_group_name`: glucose-monitor-rg
+
+### Step 5: Deploy via CI/CD
+
+1. Make a change to your code
+2. Commit and push to the `feature/setting-azure-infrastructure` branch
+3. GitHub Actions will automatically:
+   - Provision infrastructure with Terraform
+   - Build and push Docker images
+   - Deploy the API to App Service
+   - Build and deploy the React UI to Azure Storage
+
+### Step 6: Configure CORS (First Deployment Only)
+```bash
+az webapp cors add \
+  --name glucose-monitor-api \
+  --resource-group glucose-monitor-rg \
+  --allowed-origins "https://glucosemonitoruistorage.z31.web.core.windows.net"
+```
+
+## 💻 Local Development
 
 ### Setting Up the Frontend
 
@@ -89,7 +159,7 @@ Terraform automates the creation of the infrastructure.
 ### Deploying to Azure with Terraform
 1. Navigate to the Terraform configuration directory:
    ```
-   cd terraform
+   cd infra/terraform
    ```
 2. Initialize Terraform:
    ```
@@ -108,6 +178,11 @@ Terraform automates the creation of the infrastructure.
 
 5. Follow the prompts to confirm the deployment. This will deploy the application to Azure.
 
+6. Destroy resources
+```
+terraform destroy
+```
+
 ## Screenshots
 1. Front-end
 
@@ -115,11 +190,11 @@ Terraform automates the creation of the infrastructure.
 
 2. Back-End
 
-3. Cicd
+3. CI/CD Pipeline - Docker Build & Push
 
 ![Cicd Build and Push Image to Azure Container Registry](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/cicd-build-and-push-image.PNG)
 
-4. Terraform (local testing)
+4. Terraform - Local Testing
 
 ![Terraform Init](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-init-successful.png)
 ![Terraform Plan](https://github.com/clarizalooktech/glucose-monitor-app-with-dotnet-azure/blob/main/assets/terraform-plan-successful.png)
@@ -213,3 +288,30 @@ Checking Error Logs on the App Service Api
 └── .gitignore                       # Git Ignore file
 
 ```
+
+## 💰 Cost Estimation
+
+Running this application on Azure for Students:
+
+- **App Service Plan (B1)**: ~$0.075/hour (~$55/month)
+- **Container Registry (Basic)**: ~$0.007/hour (~$5/month)
+- **Storage Account**: ~$0.0004/hour (~$0.30/month)
+
+**Total**: ~$60/month (well within the $100 Azure for Students credit)
+
+## 🔒 Security Features
+
+- OIDC authentication (no stored credentials)
+- Managed identities for secure resource access
+- CORS configuration for cross-origin requests
+- TLS 1.2 minimum encryption
+- FTPS disabled (secure transfers only)
+
+## 🎯 Future Enhancements
+
+- [ ] Add Azure SQL Database for persistent storage
+- [ ] Implement user authentication (Azure AD B2C)
+- [ ] Add automated testing in CI/CD pipeline
+- [ ] Set up Application Insights for monitoring
+- [ ] Implement blue-green deployment strategy
+- [ ] Add database migrations

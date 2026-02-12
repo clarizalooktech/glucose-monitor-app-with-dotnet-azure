@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\asus\\desktop\\workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\api.csproj": {}
+    "C:\\Users\\asus\\Desktop\\Workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\asus\\desktop\\workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\api.csproj": {
+    "C:\\Users\\asus\\Desktop\\Workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\asus\\desktop\\workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\api.csproj",
+        "projectUniqueName": "C:\\Users\\asus\\Desktop\\Workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\api.csproj",
         "projectName": "api",
-        "projectPath": "C:\\Users\\asus\\desktop\\workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\api.csproj",
+        "projectPath": "C:\\Users\\asus\\Desktop\\Workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\api.csproj",
         "packagesPath": "C:\\Users\\asus\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\asus\\desktop\\workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\obj\\",
+        "outputPath": "C:\\Users\\asus\\Desktop\\Workspace\\cicd\\glucose-monitor-app-with-dotnet-azure\\src\\api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\asus\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -67,7 +67,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.406/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.418/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

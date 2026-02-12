@@ -30,6 +30,8 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
 
       - name: Terraform Init
         run: |
@@ -131,14 +133,29 @@ jobs:
           cd infra/terraform
           terraform apply -auto-approve
         env:
-          TF_VAR_resource_group_name: ${{ secrets.TF_VAR_resource_group_name }}
-          TF_VAR_acr_name: ${{ secrets.TF_VAR_acr_name }}
-          TF_VAR_location: ${{ secrets.TF_VAR_location }}
+          TF_VAR_resource_group_name: ${{ secrets.TF_VAR_RESOURCE_GROUP_NAME }}
+          TF_VAR_acr_name: ${{ secrets.TF_VAR_ACR_NAME }}
+          TF_VAR_location: ${{ secrets.TF_VAR_LOCATION }}
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          TF_VAR_app_name: ${{ secrets.TF_VAR_APP_NAME || 'glucose-monitor' }}
-          TF_VAR_create_infrastructure: ${{ steps.check-infrastructure.outputs.create_infrastructure }}
-          TF_VAR_app_service_exists: ${{ steps.check-app-service.outputs.app_service_exists || 'false' }}
-          TF_VAR_app_service_plan_exists: ${{ steps.check-app-service-plan.outputs.app_service_plan_exists || 'false' }}
+          TF_VAR_app_name: ${{ secrets.TF_VAR_APP_NAME }}
+          TF_VAR_create_infrastructure: false
+          TF_VAR_acr_exists: true
+          TF_VAR_app_service_exists: true
+          TF_VAR_app_service_plan_exists: true
+          TF_VAR_skip_role_assignment: true
+          TF_VAR_static_website_exists: true
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ secrets.TF_VAR_ACR_NAME }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd infra/terraform
+          ACR_LOGIN_SERVER=$(terraform output -raw acr_login_server)
+          cd ../../
+          docker build -t "${ACR_LOGIN_SERVER}/${{ secrets.TF_VAR_APP_NAME }}-api:latest" ./src/api
+          docker push "${ACR_LOGIN_SERVER}/${{ secrets.TF_VAR_APP_NAME }}-api:latest"
 
       # Get ACR info directly from Azure CLI
       - name: Get ACR Information
@@ -178,6 +195,20 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: |
+          cd infra/terraform
+          terraform init
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ secrets.TF_VAR_ACR_NAME }}
 
       # Get ACR info and set it as a variable
       - name: Get ACR Information
@@ -254,3 +285,38 @@ jobs:
           app-name: ${{ needs.setup-infra.outputs.app_service_name || format('{0}-api', secrets.TF_VAR_APP_NAME || 'glucose-monitor') }}
           resource-group-name: ${{ secrets.TF_VAR_resource_group_name }}
           images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
+
+      # Build UI
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build React App
+        run: |
+          cd src/ui
+          npm ci
+          npm run build
+        env:
+          REACT_APP_API_URL: https://glucose-monitor-api.azurewebsites.net
+
+      # Deploy UI to Azure Storage
+      - name: Deploy UI to Azure Storage
+        run: |
+          STORAGE_ACCOUNT="glucosemonitoruistorage"
+          RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
+          
+          # Get storage account key
+          STORAGE_KEY=$(az storage account keys list \
+            --account-name $STORAGE_ACCOUNT \
+            --resource-group $RG_NAME \
+            --query "[0].value" \
+            --output tsv)
+          
+          # Upload using account key
+          az storage blob upload-batch \
+            --account-name $STORAGE_ACCOUNT \
+            --account-key $STORAGE_KEY \
+            --source ./src/ui/build \
+            --destination '$web' \
+            --overwrite
