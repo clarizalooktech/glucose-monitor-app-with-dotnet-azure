@@ -77,7 +77,7 @@ locals {
 # Assign AcrPull role to App Service managed identity
 resource "azurerm_role_assignment" "acr_pull" {
   count                = var.skip_role_assignment ? 0 : 1
-  scope                = var.create_infrastructure ? azurerm_container_registry.acr[0].id : data.azurerm_container_registry.existing[0].id
+  scope = var.acr_exists ? data.azurerm_container_registry.existing[0].id : azurerm_container_registry.acr[0].id
   role_definition_name = "AcrPull"
   principal_id         = local.app_service_principal_id
   
