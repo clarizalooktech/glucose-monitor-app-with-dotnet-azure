@@ -55,8 +55,8 @@ variable "acr_exists" {
   default     = false
 }
 
-variable "static_web_app_exists" {
-  description = "Whether the Static Web App already exists"
+variable "static_website_exists" {
+  description = "Whether the static website storage already exists"
   type        = bool
   default     = false
 }

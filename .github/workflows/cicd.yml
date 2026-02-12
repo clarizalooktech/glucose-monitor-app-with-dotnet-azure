@@ -17,7 +17,6 @@ jobs:
       acr_login_server: ${{ steps.terraform-outputs.outputs.acr_login_server }}
       acr_admin_username: ${{ steps.terraform-outputs.outputs.acr_admin_username }}
       acr_admin_password: ${{ steps.terraform-outputs.outputs.acr_admin_password }}
-      ui_deployment_token: ${{ steps.terraform-outputs.outputs.ui_deployment_token }}
 
     steps:
       - uses: actions/checkout@v3
@@ -144,7 +143,7 @@ jobs:
           TF_VAR_app_service_exists: true
           TF_VAR_app_service_plan_exists: true
           TF_VAR_skip_role_assignment: true
-          TF_VAR_static_web_app_exists: false
+          TF_VAR_static_website_exists: false
 
       - name: Capture Terraform Outputs
         id: terraform-outputs
@@ -285,11 +284,29 @@ jobs:
           resource-group-name: ${{ secrets.TF_VAR_resource_group_name }}
           images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
 
-      - name: Build and Deploy UI
-        uses: Azure/static-web-apps-deploy@v1
+      # Build UI
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          azure_static_web_apps_api_token: ${{ steps.static-web-app-token.outputs.deployment_token }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/src/ui"
-          output_location: "build"
+          node-version: '18'
+
+      - name: Build React App
+        run: |
+          cd src/ui
+          npm ci
+          npm run build
+        env:
+          REACT_APP_API_URL: https://glucose-monitor-api.azurewebsites.net
+
+      # Deploy UI to Azure Storage
+      - name: Deploy UI to Azure Storage
+        run: |
+          cd infra/terraform
+          STORAGE_ACCOUNT=$(terraform output -raw storage_account_name)
+          cd ../../
+          az storage blob upload-batch \
+            --account-name $STORAGE_ACCOUNT \
+            --auth-mode login \
+            --source ./src/ui/build \
+            --destination '$web' \
+            --overwrite
