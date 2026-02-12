@@ -48,3 +48,9 @@ variable "skip_role_assignment" {
   type        = bool
   default     = false
 }
+
+variable "acr_exists" {
+  description = "Whether the ACR already exists"
+  type        = bool
+  default     = false
+}

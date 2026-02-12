@@ -137,6 +137,7 @@ jobs:
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           TF_VAR_app_name: ${{ secrets.TF_VAR_APP_NAME }}
           TF_VAR_create_infrastructure: false
+          TF_VAR_acr_exists: false
           TF_VAR_app_service_exists: false
           TF_VAR_app_service_plan_exists: true
           TF_VAR_skip_role_assignment: false
