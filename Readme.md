@@ -52,11 +52,37 @@ Terraform automates the creation of the infrastructure.
 - Terraform
 - Azure account
 
-### To deploy in Azure
+## To deploy in Azure
+Since we have a student acount, there are limitation when creating app service via TF.
+
+ Step 1: Create Resource Group
+```
+  az group create \
+    --name glucose-monitor-rg \
+    --location japanwest
+```
+
+Step 2: Create App Service Plan
+```
+  az appservice plan create \
+    --name glucose-monitor-plan \
+    --resource-group glucose-monitor-rg \
+    --location japanwest \
+    --is-linux \
+    --sku B1
+```
+
+Step 3: Verify Both Exist
+```
+  az resource list --resource-group glucose-monitor-rg -o table
+```
+
+- Make sure that the secrets in the repo settings are updated with the right values
 - Make change in the repo
 - Push it
 - It should trigger the cicd pipeline
 - check Github Actions section
+
 
 ## Local Development
 
