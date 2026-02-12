@@ -304,9 +304,19 @@ jobs:
       - name: Deploy UI to Azure Storage
         run: |
           STORAGE_ACCOUNT="glucosemonitoruistorage"
+          RG_NAME="${{ secrets.TF_VAR_resource_group_name }}"
+          
+          # Get storage account key
+          STORAGE_KEY=$(az storage account keys list \
+            --account-name $STORAGE_ACCOUNT \
+            --resource-group $RG_NAME \
+            --query "[0].value" \
+            --output tsv)
+          
+          # Upload using account key
           az storage blob upload-batch \
             --account-name $STORAGE_ACCOUNT \
-            --auth-mode login \
+            --account-key $STORAGE_KEY \
             --source ./src/ui/build \
             --destination '$web' \
             --overwrite
