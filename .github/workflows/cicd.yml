@@ -274,3 +274,21 @@ jobs:
           app-name: ${{ needs.setup-infra.outputs.app_service_name || format('{0}-api', secrets.TF_VAR_APP_NAME || 'glucose-monitor') }}
           resource-group-name: ${{ secrets.TF_VAR_resource_group_name }}
           images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
+
+      # Deploy UI to Azure Static Web App
+      - name: Get Static Web App Deployment Token
+        id: static-web-app-token
+        run: |
+          cd infra/terraform
+          DEPLOYMENT_TOKEN=$(terraform output -raw ui_deployment_token)
+          echo "::add-mask::$DEPLOYMENT_TOKEN"
+          echo "deployment_token=$DEPLOYMENT_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Build and Deploy UI
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.static-web-app-token.outputs.deployment_token }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/src/ui"
+          output_location: "build"
