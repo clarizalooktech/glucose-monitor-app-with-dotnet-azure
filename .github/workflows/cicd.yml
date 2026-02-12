@@ -145,14 +145,6 @@ jobs:
           TF_VAR_skip_role_assignment: true
           TF_VAR_static_website_exists: false
 
-      - name: Capture Terraform Outputs
-        id: terraform-outputs
-        run: |
-          cd infra/terraform
-          UI_TOKEN=$(terraform output -raw ui_deployment_token)
-          echo "::add-mask::$UI_TOKEN"
-          echo "ui_deployment_token=$UI_TOKEN" >> $GITHUB_OUTPUT
-
       - name: Login to Azure Container Registry
         run: |
           az acr login --name ${{ secrets.TF_VAR_ACR_NAME }}
@@ -203,6 +195,16 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: |
+          cd infra/terraform
+          terraform init
 
       - name: Login to Azure Container Registry
         run: |
