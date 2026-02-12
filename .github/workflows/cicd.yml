@@ -303,9 +303,7 @@ jobs:
       # Deploy UI to Azure Storage
       - name: Deploy UI to Azure Storage
         run: |
-          cd infra/terraform
-          STORAGE_ACCOUNT=$(terraform output -raw storage_account_name)
-          cd ../../
+          STORAGE_ACCOUNT="glucosemonitoruistorage"
           az storage blob upload-batch \
             --account-name $STORAGE_ACCOUNT \
             --auth-mode login \

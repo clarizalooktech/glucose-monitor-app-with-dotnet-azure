@@ -24,10 +24,10 @@ resource "azurerm_storage_account_static_website" "ui" {
 
 # Output the Storage Account primary endpoint
 output "ui_url" {
-  value = var.static_website_exists ? data.azurerm_storage_account.existing_ui[0].primary_web_endpoint : azurerm_storage_account.ui[0].primary_web_endpoint
+  value = var.static_website_exists ? (length(data.azurerm_storage_account.existing_ui) > 0 ? data.azurerm_storage_account.existing_ui[0].primary_web_endpoint : null) : (length(azurerm_storage_account.ui) > 0 ? azurerm_storage_account.ui[0].primary_web_endpoint : null)
 }
 
 # Output the storage account name (needed for deployment)
 output "storage_account_name" {
-  value = var.static_website_exists ? data.azurerm_storage_account.existing_ui[0].name : azurerm_storage_account.ui[0].name
+  value = var.static_website_exists ? (length(data.azurerm_storage_account.existing_ui) > 0 ? data.azurerm_storage_account.existing_ui[0].name : "${replace(var.app_name, "-", "")}uistorage") : (length(azurerm_storage_account.ui) > 0 ? azurerm_storage_account.ui[0].name : "${replace(var.app_name, "-", "")}uistorage")
 }
