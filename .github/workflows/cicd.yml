@@ -140,7 +140,7 @@ jobs:
           TF_VAR_app_name: ${{ secrets.TF_VAR_APP_NAME }}
           TF_VAR_create_infrastructure: false
           TF_VAR_acr_exists: true
-          TF_VAR_app_service_exists: false
+          TF_VAR_app_service_exists: true
           TF_VAR_app_service_plan_exists: true
           TF_VAR_skip_role_assignment: false
 
