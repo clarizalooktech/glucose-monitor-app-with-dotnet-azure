@@ -144,6 +144,7 @@ jobs:
           TF_VAR_app_service_exists: true
           TF_VAR_app_service_plan_exists: true
           TF_VAR_skip_role_assignment: true
+          TF_VAR_static_web_app_exists: false
 
       - name: Capture Terraform Outputs
         id: terraform-outputs

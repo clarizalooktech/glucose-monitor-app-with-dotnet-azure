@@ -54,3 +54,9 @@ variable "acr_exists" {
   type        = bool
   default     = false
 }
+
+variable "static_web_app_exists" {
+  description = "Whether the Static Web App already exists"
+  type        = bool
+  default     = false
+}
