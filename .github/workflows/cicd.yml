@@ -17,6 +17,7 @@ jobs:
       acr_login_server: ${{ steps.terraform-outputs.outputs.acr_login_server }}
       acr_admin_username: ${{ steps.terraform-outputs.outputs.acr_admin_username }}
       acr_admin_password: ${{ steps.terraform-outputs.outputs.acr_admin_password }}
+      ui_deployment_token: ${{ steps.terraform-outputs.outputs.ui_deployment_token }}
 
     steps:
       - uses: actions/checkout@v3
@@ -143,6 +144,14 @@ jobs:
           TF_VAR_app_service_exists: true
           TF_VAR_app_service_plan_exists: true
           TF_VAR_skip_role_assignment: true
+
+      - name: Capture Terraform Outputs
+        id: terraform-outputs
+        run: |
+          cd infra/terraform
+          UI_TOKEN=$(terraform output -raw ui_deployment_token)
+          echo "::add-mask::$UI_TOKEN"
+          echo "ui_deployment_token=$UI_TOKEN" >> $GITHUB_OUTPUT
 
       - name: Login to Azure Container Registry
         run: |
@@ -274,15 +283,6 @@ jobs:
           app-name: ${{ needs.setup-infra.outputs.app_service_name || format('{0}-api', secrets.TF_VAR_APP_NAME || 'glucose-monitor') }}
           resource-group-name: ${{ secrets.TF_VAR_resource_group_name }}
           images: ${{ steps.acr-info.outputs.acr_login_server }}/glucose-monitor-api:latest
-
-      # Deploy UI to Azure Static Web App
-      - name: Get Static Web App Deployment Token
-        id: static-web-app-token
-        run: |
-          cd infra/terraform
-          DEPLOYMENT_TOKEN=$(terraform output -raw ui_deployment_token)
-          echo "::add-mask::$DEPLOYMENT_TOKEN"
-          echo "deployment_token=$DEPLOYMENT_TOKEN" >> $GITHUB_OUTPUT
 
       - name: Build and Deploy UI
         uses: Azure/static-web-apps-deploy@v1
