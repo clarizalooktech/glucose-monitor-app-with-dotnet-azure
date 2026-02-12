@@ -143,7 +143,7 @@ jobs:
           TF_VAR_app_service_exists: true
           TF_VAR_app_service_plan_exists: true
           TF_VAR_skip_role_assignment: true
-          TF_VAR_static_website_exists: false
+          TF_VAR_static_website_exists: true
 
       - name: Login to Azure Container Registry
         run: |
